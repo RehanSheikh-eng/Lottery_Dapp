@@ -16,7 +16,15 @@ contract Lottery {
 
     struct Ticket {
         uint lottoId;
-        uint[] numbers;
+        uint[](sizeOfLottery) numbers;
+    }
+
+    constructor(){
+
+        lotteryId = 1;
+        lottoState = lotteryState.OPEN;
+        sizeOfLottery = 6;
+        
     }
 
     function startLottery(uint _duration) {
