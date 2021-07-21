@@ -3,6 +3,6 @@ pragma solidity ^0.6.6;
 
 interface ILottery {
 
-    function fulfillRandom(uint);
+    function fulfillRandom(uint) external;
 
 }
