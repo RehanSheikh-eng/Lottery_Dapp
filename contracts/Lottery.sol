@@ -3,11 +3,13 @@ pragma solidity ^0.6.6;
 pragma experimental ABIEncoderV2;
 
 import "../interfaces/IVRFConsumer.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import ".Testable.sol";
 
 
-contract Lottery {
+contract Lottery is Ownable, Testable {
 
-    IVRFConsumer randomGenerator; // ref to random number generator
+    IVRFConsumer internal randomGenerator; // ref to random number generator
 
     uint public lottoId; // Current lottery ID
     uint public fee; // Fee to enter lottery or Cost to buy "ticket"
@@ -17,50 +19,67 @@ contract Lottery {
 
 
 
-
+/** States:
+*
+*   NOTSTARTED - Lottery has not started yet 
+*   OPEN - Lottery is open and you can buy tickets
+*   CLOSED - Lottery is closed and tickets are no longer for sale
+*   COMPLETED - Lottery Winning Numbers have been drawn and rewards can be claimed
+*/
     enum States {
+        NOTSTARTED,
         CLOSED,
         OPEN,
-        CALCULATING
+        COMPLETED
     }
 
 
-
+    // Holds the tickets entered by a specific address
     mapping (address => Ticket[]) playerTickets;
+
+    // Holds the chainlink VRF request ID to Lottery ID
     mapping (bytes32 => uint) requestToLotteryId;
+    
+    // Holds the Lottery ID to Info 
     mapping (uint => LotteryInfo) allLotteries;
 
     struct Ticket {
-        uint lottoId;
-        uint[] numbers;
-        bool claimed;
+        uint lottoId;       // Lottery ID this ticket was issued for
+        uint[] numbers;     // Numbers issued with a ticket
+        bool claimed;       // bool to determine whether reward has been claimed with this ticket
     }
 
     struct LotteryInfo {
-        uint lotteryId;
-        uint[] winningNumbers;
-        States lotteryState;
-        uint[] prizeDistribution;
+        uint lotteryId;             // Lottery ID
+        uint[] winningNumbers;      // array of the winning numbers 
+        States lotteryState;        // Stores the state this specific lottery is in
+        uint[] prizeDistribution;   // Determines the % reward held in each pool
+        uint startingTimestamp;     // Block timestamp for start of lottery
+        uint closingTimestamp;      // Block timestamp for end of entries
     }
 
-    constructor() public{
+    constructor(uint _sizeOfLottery, uint _maxValidNumber, uint _fee, address, _timerAddress) 
+
+        Testable(_timerAddress)
+        public{
+        
 
         lottoId = 0;
-        sizeOfLottery = 6;
-        maxValidNumber = 50;
-        fee = 0.1 ether;
+        sizeOfLottery = _sizeOfLottery;
+        maxValidNumber = _maxValidNumber;
+        fee = _fee;
 
     }
 
-    function initialize(address _VRFConsumer) public {
+    function initialize(address _VRFConsumer) public onlyOwner(){
 
         randomGenerator = IVRFConsumer(_VRFConsumer);
 
     }
 
-    function startLottery(uint _duration, uint[] memory _prizeDistribution) public {
+    function startLottery(uint _duration, uint[] memory _prizeDistribution) public onlyOwner() {
 
-        require(allLotteries[lottoId].lotteryState == States.CLOSED || lottoId == 0);
+        require(allLotteries[lottoId].lotteryState == States.COMPLETED || lottoId == 0);
         lottoId = lottoId + 1;
 
         uint[] memory winningNumbers = new uint[](sizeOfLottery);
@@ -78,18 +97,18 @@ contract Lottery {
 
     }
 
-    function drawNumbers() public {
+    function drawNumbers() public onlyOwner() {
 
         require(allLotteries[lottoId].lotteryState == States.OPEN, "Lottery must be open");
         requestId = randomGenerator.getRandomNumber();
         requestToLotteryId[requestId] = lottoId;
-        allLotteries[lottoId].lotteryState = States.CALCULATING;
+        allLotteries[lottoId].lotteryState = States.COMPLETED;
 
     }
 
     function fulfillRandom(uint256 _randomness) external {
 
-        require(allLotteries[lottoId].lotteryState == States.CALCULATING);
+        require(allLotteries[lottoId].lotteryState == States.COMPLETED);
         allLotteries[lottoId].winningNumbers = expand(_randomness);
         allLotteries[lottoId].lotteryState = States.CLOSED;
 
