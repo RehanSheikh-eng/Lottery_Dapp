@@ -26,7 +26,6 @@ def claim_prizes():
         lottery.claimPrize(lotteryId)
 
 
-        
 
 def main():
     draw_numbers()

@@ -58,11 +58,16 @@ contract Lottery is Ownable, Testable {
         uint closingTimestamp;      // Block timestamp for end of entries
     }
 
-    constructor(uint _sizeOfLottery, uint _maxValidNumber, uint _fee, address, _timerAddress) 
+    constructor(
+        uint _sizeOfLottery,
+        uint _maxValidNumber,
+        uint _fee,
+        address _timerAddress) 
 
         Testable(_timerAddress)
         public{
         
+        require(_sizeOfLottery != 0 || _maxValidNumber != 0 || _fee != 0); // dev: Lottery params cannot be 0 
 
         lottoId = 0;
         sizeOfLottery = _sizeOfLottery;
@@ -73,18 +78,62 @@ contract Lottery is Ownable, Testable {
 
     function initialize(address _VRFConsumer) public onlyOwner(){
 
+        require(_VRFConsumer != address(0x0)); // dev: VRFConsumer address must be defined
         randomGenerator = IVRFConsumer(_VRFConsumer);
 
     }
 
-    function startLottery(uint _duration, uint[] memory _prizeDistribution) public onlyOwner() {
+    function startLottery(
+        uint _startingTimestamp,
+        uint _closingTimestamp,
+        uint[] memory _prizeDistribution)
 
-        require(allLotteries[lottoId].lotteryState == States.COMPLETED || lottoId == 0);
+        public
+        onlyOwner() {
+
+        require(allLotteries[lottoId].lotteryState == States.COMPLETED || lottoId == 0); // dev: Previous lottery is not complete
+        require(_prizeDistribution.length == sizeOfLottery); // dev: Prize array length does not equal sizeOfLottery
+
+        // Ensuring Prize Distribution Array totals 100
+        uint256 prizeDistributionTotal = 0;
+
+        // Iterate thorugh array
+        for (uint256 j = 0; j < _prizeDistribution.length; j++) {
+
+            // Add jth element to running total
+            prizeDistributionTotal += _prizeDistribution[j];
+        }
+
+        require(prizeDistributionTotal == 100); // dev: Prize array does not total 100%
+
+        // Increment lottery ID counter
         lottoId = lottoId + 1;
 
+        // Initialize winning numbers array filled with zeros
         uint[] memory winningNumbers = new uint[](sizeOfLottery);
-        States lotteryState = States.OPEN;
-        LotteryInfo memory newLottery = LotteryInfo(lottoId, winningNumbers, lotteryState, _prizeDistribution);
+
+        // Initialize lottery state variable
+        States lotteryStatus;
+
+        // Lottery state is open if current time is less than or equal to the starting time specified
+        if(_startingTimestamp >= getCurrentTime()) {
+            lotteryStatus = States.OPEN;
+        }
+
+        // Otherwise the lottery has not started
+        else {
+            lotteryStatus = States.NOTSTARTED;
+        }
+
+        // Save data in struct and add to mapping with key as current lottery ID
+        LotteryInfo memory newLottery = LotteryInfo(
+            lottoId,
+            winningNumbers,
+            lotteryState,
+            _prizeDistribution,
+            _startingTimestamp,
+            _closingTimestamp);
+
         allLotteries[lottoId] = newLottery;
 
     }

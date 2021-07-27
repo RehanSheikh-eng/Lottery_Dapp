@@ -17,7 +17,7 @@ autofetch_sources: True
 dotenv: .env
 # set a custom mnemonic for the development network
 networks:
-  default: development
+  default: ganache
   development:
     keyhash: '0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4'
     fee: 100000000000000000
@@ -68,6 +68,8 @@ networks:
   binance-fork:
     eth_usd_price_feed: '0x9ef1B8c0E4F7dc8bF5719Ea496883DC6401d5b2e'
   mainnet-fork:
+    keyhash: '0xAA77729D3466CA35AE8D28B3BBAC7CC36A5031EFDC430821C02BC31A238AF445'
+    fee: 100000000000000000
     eth_usd_price_feed: '0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419'
   matic-fork:
     eth_usd_price_feed: '0xF9680D99D6C9589e2a93a78A04A279e509205945'
