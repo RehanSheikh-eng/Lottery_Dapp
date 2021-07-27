@@ -91,8 +91,20 @@ contract Lottery is Ownable, Testable {
         public
         onlyOwner() {
 
-        require(allLotteries[lottoId].lotteryState == States.COMPLETED || lottoId == 0); // dev: Previous lottery is not complete
-        require(_prizeDistribution.length == sizeOfLottery); // dev: Prize array length does not equal sizeOfLottery
+        require(
+            allLotteries[lottoId].lotteryState == States.COMPLETED ||
+            lottoId == 0
+        ); // dev: Previous lottery is not complete
+
+        require(
+            _startingTimestamp != 0 ||
+            _startingTimestamp < _closingTimestamp
+        ); // dev: Timestamps for lottery invalid
+
+        require(
+            _prizeDistribution.length == sizeOfLottery
+        ); // dev: Prize array length does not equal sizeOfLottery
+
 
         // Ensuring Prize Distribution Array totals 100
         uint256 prizeDistributionTotal = 0;
@@ -113,16 +125,16 @@ contract Lottery is Ownable, Testable {
         uint[] memory winningNumbers = new uint[](sizeOfLottery);
 
         // Initialize lottery state variable
-        States lotteryStatus;
+        States lotteryState;
 
         // Lottery state is open if current time is less than or equal to the starting time specified
         if(_startingTimestamp >= getCurrentTime()) {
-            lotteryStatus = States.OPEN;
+            lotteryState = States.OPEN;
         }
 
         // Otherwise the lottery has not started
         else {
-            lotteryStatus = States.NOTSTARTED;
+            lotteryState = States.NOTSTARTED;
         }
 
         // Save data in struct and add to mapping with key as current lottery ID
@@ -139,23 +151,60 @@ contract Lottery is Ownable, Testable {
     }
 
     function enter(uint[] memory _lottoNumbers) public payable {
-        require(_lottoNumbers.length == sizeOfLottery);
-        require(msg.value >= fee);
-        require(allLotteries[lottoId].lotteryState == States.OPEN);
+
+        require(
+            _lottoNumbers.length == sizeOfLottery
+        ); // dev: Numbers do not match lottery length
+
+        require(
+            msg.value >= fee
+        ); // dev: More funds requried to buy ticket
+
+        require(
+            getCurrentTime() >= allLotteries[lottoId].startingTimestamp &&
+            getCurrentTime() < allLotteries[lottoId].closingTimestamp
+        ); // dev: Invalid time to buy tickets for this lottery
+
+        // Ensuring lottery is in valid state and valid time
+        if(
+            allLotteries[lottoId].lotteryState == States.NOTSTARTED &&
+            allLotteries[lottoId].startingTimestamp >= getCurrentTime())
+        {
+                allLotteries[lottoId].lotteryState == States.OPEN;
+        }
+
+        require(
+            allLoteries[lottoId].lotteryState == States.OPEN
+        ); // dev: Lottery is not Open therfore cannot enter 
+
+        // Adds Ticket struct to mapping with players address as key
         playerTickets[msg.sender].push(Ticket(lottoId, _lottoNumbers, false));
 
     }
 
     function drawNumbers() public onlyOwner() {
 
-        require(allLotteries[lottoId].lotteryState == States.OPEN, "Lottery must be open");
+        require(
+            allLotteries[lottoId].closingTimestamp <= getCurrentTime()
+        ); // dev: Invalid time to draw winning numbers
+
+        require(
+            allLotteries[lottoId].lotteryState == States.OPEN
+        ); // dev: Lottery must be open
+
+        // Requesting random number from VRFConsumer contract
         requestId = randomGenerator.getRandomNumber();
+
+        // Storing request ID in mapping to ensure multiple requests not sent
         requestToLotteryId[requestId] = lottoId;
-        allLotteries[lottoId].lotteryState = States.COMPLETED;
+
+        // Changing state of lottery so no more entries allowed
+        allLotteries[lottoId].lotteryState = States.CLOSED;
 
     }
 
     function fulfillRandom(uint256 _randomness) external {
+
 
         require(allLotteries[lottoId].lotteryState == States.COMPLETED);
         allLotteries[lottoId].winningNumbers = expand(_randomness);
