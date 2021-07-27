@@ -33,16 +33,6 @@ contract Lottery is Ownable, Testable {
         COMPLETED
     }
 
-
-    // Holds the tickets entered by a specific address
-    mapping (address => Ticket[]) playerTickets;
-
-    // Holds the chainlink VRF request ID to Lottery ID
-    mapping (bytes32 => uint) requestToLotteryId;
-    
-    // Holds the Lottery ID to Info 
-    mapping (uint => LotteryInfo) allLotteries;
-
     struct Ticket {
         uint lottoId;       // Lottery ID this ticket was issued for
         uint[] numbers;     // Numbers issued with a ticket
@@ -56,6 +46,24 @@ contract Lottery is Ownable, Testable {
         uint[] prizeDistribution;   // Determines the % reward held in each pool
         uint startingTimestamp;     // Block timestamp for start of lottery
         uint closingTimestamp;      // Block timestamp for end of entries
+    }
+
+    // Holds the tickets entered by a specific address
+    mapping (address => Ticket[]) public playerTickets;
+
+    // Holds the chainlink VRF request ID to Lottery ID
+    mapping (bytes32 => uint) internal requestToLotteryId;
+    
+    // Holds the Lottery ID to Info 
+    mapping (uint => LotteryInfo) internal allLotteries;
+
+    modifier onlyRandomContract(){
+
+        require(
+            msg.sender == address(randomGenerator)
+        ); // dev: Only VRFConsuemr contract can call this function
+
+        _;
     }
 
     constructor(
@@ -76,9 +84,21 @@ contract Lottery is Ownable, Testable {
 
     }
 
+    //-------------------------------------------------------------------------
+    // STATE MODIFYING FUNCTIONS 
+    //-------------------------------------------------------------------------
+
+    //-------------------------------------------------------------------------
+    // Restricted Access Functions (onlyOwner)/(onlyRandomContract)
+    //-------------------------------------------------------------------------
+
     function initialize(address _VRFConsumer) public onlyOwner(){
 
-        require(_VRFConsumer != address(0x0)); // dev: VRFConsumer address must be defined
+        require(
+            _VRFConsumer != address(0x0)
+        ); // dev: VRFConsumer address must be defined
+
+        // Create VRFConsumer contract instance
         randomGenerator = IVRFConsumer(_VRFConsumer);
 
     }
@@ -150,6 +170,51 @@ contract Lottery is Ownable, Testable {
 
     }
 
+    function drawNumbers() public onlyOwner() {
+
+        require(
+            allLotteries[lottoId].closingTimestamp <= getCurrentTime()
+        ); // dev: Invalid time to draw winning numbers
+
+        require(
+            allLotteries[lottoId].lotteryState == States.OPEN
+        ); // dev: Lottery must be open
+
+        // Requesting random number from VRFConsumer contract
+        requestId = randomGenerator.getRandomNumber();
+
+        // Storing request ID in mapping to ensure multiple requests not sent
+        requestToLotteryId[requestId] = lottoId;
+
+        // Changing state of lottery so no more entries allowed
+        allLotteries[lottoId].lotteryState = States.CLOSED;
+
+    }
+
+    function fulfillRandom(
+        uint256 _randomness,
+        byte32 _requestId)
+
+        external
+        onlyRandomContract() {
+
+        require(
+            allLotteries[lottoId].lotteryState == States.CLOSED
+        ); // dev: Lottery is not closed
+
+        // Check if randomness requests match
+        if(requestId == _requestId){
+
+            // Pick random winning numbers and change state to complete
+            allLotteries[lottoId].winningNumbers = expand(_randomness);
+            allLotteries[lottoId].lotteryState = States.COMPLETED;
+        }
+    }
+
+    //-------------------------------------------------------------------------
+    // General Access Functions
+    //-------------------------------------------------------------------------
+
     function enter(uint[] memory _lottoNumbers) public payable {
 
         require(
@@ -182,58 +247,38 @@ contract Lottery is Ownable, Testable {
 
     }
 
-    function drawNumbers() public onlyOwner() {
-
-        require(
-            allLotteries[lottoId].closingTimestamp <= getCurrentTime()
-        ); // dev: Invalid time to draw winning numbers
-
-        require(
-            allLotteries[lottoId].lotteryState == States.OPEN
-        ); // dev: Lottery must be open
-
-        // Requesting random number from VRFConsumer contract
-        requestId = randomGenerator.getRandomNumber();
-
-        // Storing request ID in mapping to ensure multiple requests not sent
-        requestToLotteryId[requestId] = lottoId;
-
-        // Changing state of lottery so no more entries allowed
-        allLotteries[lottoId].lotteryState = States.CLOSED;
-
-    }
-
-    function fulfillRandom(uint256 _randomness) external {
-
-
-        require(allLotteries[lottoId].lotteryState == States.COMPLETED);
-        allLotteries[lottoId].winningNumbers = expand(_randomness);
-        allLotteries[lottoId].lotteryState = States.CLOSED;
-
-    }
-
     function claimPrize(uint _lotteryId) public {
 
-        require(allLotteries[_lotteryId].lotteryState == States.CLOSED);
+        require(
+            allLotteries[_lotteryId].closingTimestamp <= getCurrentTime()
+        ); // dev: Wait unitll the end of the lottery to claim prize
 
+        require(
+            allLotteries[_lotteryId].lotteryState == States.COMPLETED
+        ); // dev: Wining Numbers have not been drawn yet
+
+        // Iterate through all tickets belonging to the player
         for(uint i = 0; i < playerTickets[msg.sender].length; i++){
-            if (playerTickets[msg.sender][i].lottoId == _lotteryId && playerTickets[msg.sender][i].claimed == false){
 
+            // Ensure ticket has not be claimed 
+            if (
+                playerTickets[msg.sender][i].lottoId == _lotteryId &&
+                playerTickets[msg.sender][i].claimed == false) {
+
+                // Check how many numbers match (correct number not position)
                 uint8 matchingNumbers = getMatchingNumbers(playerTickets[msg.sender][i].numbers,
                                                         allLotteries[_lotteryId].winningNumbers);
 
+                // Calculate prize
                 uint prize = prizeForMatching(matchingNumbers, _lotteryId);
                 
+                // Transfer prize to player
                 payable(address(msg.sender)).transfer(prize);
 
+                // Set claimed flag of ticket to true
                 playerTickets[msg.sender][i].claimed = true;
-
-                
-
             }
-
         }
-
     }
 
     //-------------------------------------------------------------------------
@@ -275,8 +320,7 @@ contract Lottery is Ownable, Testable {
     //-------------------------------------------------------------------------
 
     function expand(
-        uint256 randomValue
-        )
+        uint256 randomValue)
 
         internal 
         view 
@@ -292,11 +336,11 @@ contract Lottery is Ownable, Testable {
 
     function getMatchingNumbers(
         uint[] memory _playerNumbers,
-        uint[] memory _winningNumbers
-    )
+        uint[] memory _winningNumbers)
+
         internal 
         pure 
-        returns(uint8 matching){
+        returns(uint8 matching) {
 
         for(uint i = 0; i < _winningNumbers.length; i++){
             for(uint j = 0; j < _playerNumbers.length; j++){
@@ -307,11 +351,9 @@ contract Lottery is Ownable, Testable {
         }
     }
 
-
     function prizeForMatching(
         uint8 _noOfMatching,
-        uint256 _lotteryId
-        )
+        uint256 _lotteryId)
 
         internal
         view
@@ -328,5 +370,5 @@ contract Lottery is Ownable, Testable {
         prize = address(this).balance * perOfPool; 
         // Returning the prize divided by 100 (as the prize distribution is scaled)
         return prize / 100;
-        }
+    }
 }
