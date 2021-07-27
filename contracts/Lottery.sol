@@ -10,14 +10,11 @@ import ".Testable.sol";
 contract Lottery is Ownable, Testable {
 
     IVRFConsumer internal randomGenerator; // ref to random number generator
-
     uint public lottoId; // Current lottery ID
     uint public fee; // Fee to enter lottery or Cost to buy "ticket"
     uint public sizeOfLottery; // Size of Lottery e.g 6 => Ticket = [0, 15, 20, 21, 40, 49]
     uint public maxValidNumber; // Maximum possible number in lottery e.g 50
     bytes32 internal requestId; // Request ID for Chainlink VRF used to keep track of randomness requests
-
-
 
 /** States:
 *
@@ -48,6 +45,10 @@ contract Lottery is Ownable, Testable {
         uint closingTimestamp;      // Block timestamp for end of entries
     }
 
+    //-------------------------------------------------------------------------
+    // MAPPINGS 
+    //-------------------------------------------------------------------------
+
     // Holds the tickets entered by a specific address
     mapping (address => Ticket[]) public playerTickets;
 
@@ -57,6 +58,10 @@ contract Lottery is Ownable, Testable {
     // Holds the Lottery ID to Info 
     mapping (uint => LotteryInfo) internal allLotteries;
 
+    //-------------------------------------------------------------------------
+    // MODIFIERS
+    //-------------------------------------------------------------------------
+
     modifier onlyRandomContract(){
 
         require(
@@ -65,6 +70,10 @@ contract Lottery is Ownable, Testable {
 
         _;
     }
+
+    //-------------------------------------------------------------------------
+    // CONSTRUCTOR 
+    //-------------------------------------------------------------------------
 
     constructor(
         uint _sizeOfLottery,
