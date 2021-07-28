@@ -25,8 +25,8 @@ contract Lottery is Ownable, Testable {
 */
     enum States {
         NOTSTARTED,
-        CLOSED,
         OPEN,
+        CLOSED,
         COMPLETED
     }
 
@@ -157,7 +157,7 @@ contract Lottery is Ownable, Testable {
         States lotteryState;
 
         // Lottery state is open if current time is less than or equal to the starting time specified
-        if(_startingTimestamp >= getCurrentTime()) {
+        if(_startingTimestamp <= getCurrentTime()) {
             lotteryState = States.OPEN;
         }
 

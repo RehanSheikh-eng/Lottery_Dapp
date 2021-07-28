@@ -3,10 +3,67 @@ from brownie import (
     accounts,
     config,
     network,
+    Lottery,
+    VRFConsumer,
+    Timer
 )
 from scripts.helpful_scripts import (
+    get_account,
+    get_contract,
     LOCAL_BLOCKCHAIN_ENVIRONMENTS,
 )
+
+SIZE_OF_LOTTERY = 6
+MAX_VALID_NUMBER = 30
+FEE = 100_000_000_000_000_000
+
+
+@pytest.fixture
+def deploy_all_contracts(get_keyhash, chainlink_fee):
+
+    if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        timer = Timer.deploy({"from": get_account()})
+        assert timer is not None
+        timer_address = timer.address
+
+    else:
+        timer_address = 0
+
+    lottery = Lottery.deploy(
+        SIZE_OF_LOTTERY,
+        MAX_VALID_NUMBER,
+        FEE,
+        timer_address,
+        {"from": get_account()})
+
+    vrf_consumer = VRFConsumer.deploy(
+        get_keyhash,
+        get_contract("vrf_coordinator").address,
+        get_contract("link_token").address,
+        lottery.address,
+        chainlink_fee,
+        {"from": get_account()})
+
+
+        
+    # Provide VRFConsumer with funds
+    tx1 = get_contract("link_token").transfer(
+        vrf_consumer.address,
+        chainlink_fee * 3,
+        {"from": get_account()})
+
+    tx2 = lottery.initialize(
+        vrf_consumer.address,
+        {"from": get_account()})
+
+    # Assert
+    assert vrf_consumer is not None
+    assert lottery is not None
+    assert isinstance(tx1.txid, str)
+    assert isinstance(tx2.txid, str)
+
+    # Return
+    return vrf_consumer, timer, lottery
 
 
 @pytest.fixture
