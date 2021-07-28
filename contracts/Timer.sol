@@ -1,6 +1,6 @@
   
 // SPDX-License-Identifier: MIT
-pragma solidity >= 0.6.0 < 0.8.0;
+pragma solidity ^0.6.6;
 
 /**
  * @title Universal store of current contract time for testing environments.

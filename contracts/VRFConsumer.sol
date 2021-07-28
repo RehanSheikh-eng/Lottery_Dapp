@@ -43,7 +43,7 @@ contract VRFConsumer is VRFConsumerBase {
      * Callback function used by VRF Coordinator
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        lottery.fulfillRandom(requestId, randomness);
+        lottery.fulfillRandom(randomness, requestId);
         randomResult = randomness;
     }
 }

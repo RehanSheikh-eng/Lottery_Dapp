@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 
 import "../interfaces/IVRFConsumer.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import ".Testable.sol";
+import "./Testable.sol";
 
 
 contract Lottery is Ownable, Testable {
@@ -202,7 +202,7 @@ contract Lottery is Ownable, Testable {
 
     function fulfillRandom(
         uint256 _randomness,
-        byte32 _requestId)
+        bytes32 _requestId)
 
         external
         onlyRandomContract() {
@@ -248,7 +248,7 @@ contract Lottery is Ownable, Testable {
         }
 
         require(
-            allLoteries[lottoId].lotteryState == States.OPEN
+            allLotteries[lottoId].lotteryState == States.OPEN
         ); // dev: Lottery is not Open therfore cannot enter 
 
         // Adds Ticket struct to mapping with players address as key
