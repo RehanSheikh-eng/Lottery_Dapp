@@ -27,7 +27,7 @@ def deploy_all_contracts(get_keyhash, chainlink_fee):
         timer_address = timer.address
 
     else:
-        timer_address = 0
+        timer_address = 0x0
 
     lottery = Lottery.deploy(
         SIZE_OF_LOTTERY,

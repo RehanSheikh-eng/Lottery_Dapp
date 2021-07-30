@@ -71,6 +71,9 @@ contract Lottery is Ownable, Testable {
         _;
     }
 
+
+    event RequestNumbers(uint256 lotteryId, bytes32 requestId);
+
     //-------------------------------------------------------------------------
     // CONSTRUCTOR 
     //-------------------------------------------------------------------------
@@ -126,7 +129,10 @@ contract Lottery is Ownable, Testable {
         ); // dev: Previous lottery is not complete
 
         require(
-            _startingTimestamp != 0 ||
+            _startingTimestamp != 0
+        ); // dev: Timestamps for lottery invalid
+
+        require(
             _startingTimestamp < _closingTimestamp
         ); // dev: Timestamps for lottery invalid
 
@@ -156,7 +162,7 @@ contract Lottery is Ownable, Testable {
         // Initialize lottery state variable
         States lotteryState;
 
-        // Lottery state is open if current time is less than or equal to the starting time specified
+        // Lottery state is open if current time is greater than or equal to the starting time specified
         if(_startingTimestamp <= getCurrentTime()) {
             lotteryState = States.OPEN;
         }
@@ -189,15 +195,16 @@ contract Lottery is Ownable, Testable {
             allLotteries[lottoId].lotteryState == States.OPEN
         ); // dev: Lottery must be open
 
+        // Changing state of lottery so no more entries allowed
+        allLotteries[lottoId].lotteryState = States.CLOSED;
+
         // Requesting random number from VRFConsumer contract
         requestId = randomGenerator.getRandomNumber();
 
         // Storing request ID in mapping to ensure multiple requests not sent
         requestToLotteryId[requestId] = lottoId;
 
-        // Changing state of lottery so no more entries allowed
-        allLotteries[lottoId].lotteryState = States.CLOSED;
-
+        emit RequestNumbers(lottoId, requestId);
     }
 
     function fulfillRandom(
@@ -242,7 +249,7 @@ contract Lottery is Ownable, Testable {
         // Ensuring lottery is in valid state and valid time
         if(
             allLotteries[lottoId].lotteryState == States.NOTSTARTED &&
-            allLotteries[lottoId].startingTimestamp >= getCurrentTime())
+            allLotteries[lottoId].startingTimestamp <= getCurrentTime())
         {
                 allLotteries[lottoId].lotteryState == States.OPEN;
         }

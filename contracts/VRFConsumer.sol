@@ -8,9 +8,16 @@ contract VRFConsumer is VRFConsumerBase {
     
     bytes32 internal keyHash;
     uint256 internal fee;
-    ILottery lottery;
+    address lottery;
     uint256 public randomResult;
-    
+
+    modifier onlyLottery() {
+        require(
+            msg.sender == lottery
+        ); // dev: Only Lottery contract can call this function
+        _;
+    }
+
     /**
      * Constructor inherits VRFConsumerBase
      * 
@@ -28,13 +35,16 @@ contract VRFConsumer is VRFConsumerBase {
         keyHash = _keyhash;
         // fee = 0.1 * 10 ** 18; // 0.1 LINK
         fee = _fee;
-        lottery = ILottery(_lottery);
+        lottery = _lottery;
     }
     
     /** 
      * Requests randomness
      */
-    function getRandomNumber() public returns (bytes32 requestId) {
+    function getRandomNumber()
+        public
+        onlyLottery()
+        returns (bytes32 requestId) {
         require(LINK.balanceOf(address(this)) >= fee, "Not enough LINK - fill contract with faucet");
         return requestRandomness(keyHash, fee);
     }
@@ -43,7 +53,7 @@ contract VRFConsumer is VRFConsumerBase {
      * Callback function used by VRF Coordinator
      */
     function fulfillRandomness(bytes32 requestId, uint256 randomness) internal override {
-        lottery.fulfillRandom(randomness, requestId);
         randomResult = randomness;
+        ILottery(lottery).fulfillRandom(randomness, requestId);
     }
 }

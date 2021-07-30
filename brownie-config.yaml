@@ -41,6 +41,18 @@ networks:
     jobId: '29fa9aa13bf1468788b7cc4a500a45b8'
     update_interval: 60
     verify: False
+  ganache2:
+    keyhash: '0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4'
+    fee: 100000000000000000
+    jobId: '29fa9aa13bf1468788b7cc4a500a45b8'
+    update_interval: 60
+    verify: False
+  ganacheGUI:
+    keyhash: '0x6c3699283bda56ad74f6b855546325b68d482e983852a7a82979cc4807b641f4'
+    fee: 100000000000000000
+    jobId: '29fa9aa13bf1468788b7cc4a500a45b8'
+    update_interval: 60
+    verify: False
   rinkeby:
     vrf_coordinator: '0xb3dCcb4Cf7a26f6cf6B120Cf5A73875B7BBc655B'
     link_token: '0x01be23585060835e02b77ef475b0cc51aa1e0709'
