@@ -85,7 +85,7 @@
         ],
         "Lottery.drawNumbers": [
           2,
-          0,
+          2,
           2
         ],
         "Lottery.enter": [
@@ -95,7 +95,7 @@
         ],
         "Lottery.fulfillRandom": [
           1,
-          2,
+          1,
           2
         ],
         "Lottery.getMatchingNumbers": [
@@ -115,7 +115,7 @@
         ],
         "Lottery.startLottery": [
           6,
-          6,
+          7,
           7
         ],
         "Ownable.transferOwnership": [
@@ -218,7 +218,7 @@
       "totals": {
         "branches": [
           10,
-          9,
+          11,
           28
         ],
         "statements": [
@@ -366,13 +366,13 @@
           [
             6216,
             6274,
-            "yellow",
+            "green",
             ""
           ],
           [
             6361,
             6410,
-            "yellow",
+            "green",
             ""
           ],
           [
@@ -420,7 +420,7 @@
           [
             7043,
             7094,
-            "green",
+            "yellow",
             ""
           ],
           [
@@ -456,7 +456,7 @@
           [
             4334,
             4346,
-            "yellow",
+            "green",
             ""
           ],
           [

@@ -311,26 +311,6 @@ contract Lottery is Ownable, Testable {
         return (allLotteries[_lotteryId]);
     }
 
-    function getLotteryId() public view returns(uint){
-        
-        return lottoId; 
-    }
-
-    function getSizeOfLottery() public view returns(uint){
-
-        return sizeOfLottery;
-    }
-
-    function getMaxValidNumber() public view returns(uint){
-
-        return maxValidNumber;
-    }
-
-    function getFee() public view returns(uint){
-
-        return fee;
-    }
-
     //-------------------------------------------------------------------------
     // INTERNAL FUNCTIONS
     //-------------------------------------------------------------------------

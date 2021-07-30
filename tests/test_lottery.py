@@ -10,11 +10,13 @@ from scripts.helpful_scripts import(
 from conftest import (
     SIZE_OF_LOTTERY,
     MAX_VALID_NUMBER, 
-    FEE
+    FEE,
+    ORIGIN_TIME,
+    VALID_PRIZE_DISTRIBUTION
 )
 
-VALID_PRIZE_DISTRIBUTION = [50, 20, 10, 10, 5, 5]
-ORIGIN_TIME = 5
+
+
 
 
 
@@ -42,6 +44,13 @@ def test_valid_start_lottery_local(
         VALID_PRIZE_DISTRIBUTION,
         {"from": account})
     
+    with reverts():
+        lottery.startLottery(
+            starting_time,
+            closing_time,
+            VALID_PRIZE_DISTRIBUTION,
+            {"from": account})
+
     # Assert
     lotto_ID = lottery.lottoId({"from": account})
     lotto_info = lottery.getLotteryInfo(lotto_ID, {"from": account})
@@ -91,24 +100,15 @@ def test_revert_start_lottery_local(
             [5, 5, 5, 5, 5, 5],
             {"from": OTHER_ACCOUNT})
       
-def test_valid_draw_numbers_local(deploy_all_contracts):
+def test_valid_draw_numbers_local(start_lottery):
 
     # Arrange
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         pytest.skip("Only for local testing")
 
-    vrf_consumer, _, lottery = deploy_all_contracts
+    vrf_consumer, _, lottery, account = start_lottery
     account = get_account()
-    lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
-    tx1 = lottery.startLottery(
-        ORIGIN_TIME,
-        ORIGIN_TIME+100,
-        VALID_PRIZE_DISTRIBUTION,
-        {"from": account})
-
-    assert isinstance(tx1.txid, str)
     lotto_ID = lottery.lottoId({"from": account})
-    
     lottery.setCurrentTime(ORIGIN_TIME+105, {"from": account})
 
     # Act
@@ -130,3 +130,34 @@ def test_valid_draw_numbers_local(deploy_all_contracts):
 
     # Assert
     assert lotto_info[2] == 3
+
+def test_revert_draw_numbers_local(start_lottery, node_account):
+
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+    _, _, lottery, account = start_lottery
+
+    # Act
+    with reverts():
+        lottery.drawNumbers({"from": account})
+
+    lottery.setCurrentTime(ORIGIN_TIME+105, {"from": account})
+
+    with reverts():
+        lottery.drawNumbers({"from": node_account})
+    
+    lottery.drawNumbers({"from": account})
+
+    with reverts():
+        lottery.drawNumbers({"from": account})
+
+def test_valid_enter_local(start_lottery):
+
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+    _, _, lottery, account = start_lottery(STATE="NOTSTARTED")
+
+    lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
+

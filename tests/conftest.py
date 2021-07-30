@@ -16,6 +16,8 @@ from scripts.helpful_scripts import (
 SIZE_OF_LOTTERY = 6
 MAX_VALID_NUMBER = 30
 FEE = 100_000_000_000_000_000
+ORIGIN_TIME = 5
+VALID_PRIZE_DISTRIBUTION = [50, 20, 10, 10, 5, 5]
 
 
 @pytest.fixture
@@ -65,6 +67,29 @@ def deploy_all_contracts(get_keyhash, chainlink_fee):
     # Return
     return vrf_consumer, timer, lottery
 
+
+@pytest.fixture
+def start_lottery(deploy_all_contracts, STATE="OPEN"):
+    vrf_consumer, timer, lottery = deploy_all_contracts
+    account = get_account()
+    lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
+
+    if STATE == "NOTSTARTED":    
+        tx1 = lottery.startLottery(
+            ORIGIN_TIME-5,
+            ORIGIN_TIME+100,
+            VALID_PRIZE_DISTRIBUTION,
+            {"from": account})
+            
+    elif STATE == "OPEN":
+        tx1 = lottery.startLottery(
+            ORIGIN_TIME,
+            ORIGIN_TIME+100,
+            VALID_PRIZE_DISTRIBUTION,
+            {"from": account})
+
+    assert isinstance(tx1.txid, str)
+    return vrf_consumer, timer, lottery, account
 
 @pytest.fixture
 def get_keyhash():
