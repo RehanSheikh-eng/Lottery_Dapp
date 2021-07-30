@@ -1,6 +1,7 @@
 import time
 import pytest
-from brownie import Lottery, VRFConsumer, Timer, convert, network, reverts
+import numpy as np
+from brownie import Lottery, VRFConsumer, Timer, convert, network, reverts, accounts
 from scripts.helpful_scripts import(
     get_account,
     get_contract,
@@ -157,7 +158,16 @@ def test_valid_enter_local(start_lottery):
     # Arrange
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         pytest.skip("Only for local testing")
-    _, _, lottery, account = start_lottery(STATE="NOTSTARTED")
+    _, _, lottery, account = start_lottery
 
-    lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
+    # Act
+    for account in accounts:
+        randnums= np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
+        tx = lottery.enter(randnums.tolist(), {"from": account, "value": FEE})
+        nums = lottery.getTicketNumber(0, {"from": account})
+
+        # Assert
+        assert isinstance(tx.txid, str)
+        assert nums == randnums.tolist()
+        
 
