@@ -1,5 +1,7 @@
 # exclude SafeMath when calculating test coverage
 # https://eth-brownie.readthedocs.io/en/v1.10.3/config.html#exclude_paths
+project_structure:
+    build: client/src/artifacts
 reports:
   exclude_contracts:
     - SafeMath
@@ -88,5 +90,7 @@ networks:
 wallets:
   from_key: ${PRIVATE_KEY}
   from_mnemonic: ${MNEMONIC}
+# enable output of development artifacts to load with react
+dev_deployment_artifacts: true
 
   # could also do from_mnemonic, and you'd have to change the accounts.add to accounts.from_mnemonic
