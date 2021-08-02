@@ -306,6 +306,11 @@ contract Lottery is Ownable, Testable {
         return playerTickets[msg.sender][_index].numbers;
     }
 
+    function getNumberOfTickets() public view returns(uint){
+
+        return playerTickets[msg.sender].length;
+    }
+
     function getLotteryInfo(uint _lotteryId) public view returns (LotteryInfo memory){
 
         return (allLotteries[_lotteryId]);
