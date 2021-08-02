@@ -247,11 +247,12 @@ contract Lottery is Ownable, Testable {
         ); // dev: Invalid time to buy tickets for this lottery
 
         // Ensuring lottery is in valid state and valid time
-        if(
-            allLotteries[lottoId].lotteryState == States.NOTSTARTED &&
-            allLotteries[lottoId].startingTimestamp <= getCurrentTime())
-        {
-                allLotteries[lottoId].lotteryState == States.OPEN;
+        if(allLotteries[lottoId].lotteryState == States.NOTSTARTED){
+
+            if(getCurrentTime() >= allLotteries[lottoId].startingTimestamp){
+
+                allLotteries[lottoId].lotteryState = States.OPEN;
+            }
         }
 
         require(

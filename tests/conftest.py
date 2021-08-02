@@ -69,7 +69,7 @@ def deploy_all_contracts(get_keyhash, chainlink_fee):
 
 
 @pytest.fixture
-def start_lottery(deploy_all_contracts):
+def start_lottery_open(deploy_all_contracts):
     vrf_consumer, timer, lottery = deploy_all_contracts
     account = get_account()
     lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
@@ -82,6 +82,23 @@ def start_lottery(deploy_all_contracts):
 
     assert isinstance(tx1.txid, str)
     return vrf_consumer, timer, lottery, account
+
+
+@pytest.fixture
+def start_lottery_notstarted(deploy_all_contracts):
+    vrf_consumer, timer, lottery = deploy_all_contracts
+    account = get_account()
+    lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
+
+    tx1 = lottery.startLottery(
+        ORIGIN_TIME+5,
+        ORIGIN_TIME+100,
+        VALID_PRIZE_DISTRIBUTION,
+        {"from": account})
+
+    assert isinstance(tx1.txid, str)
+    return vrf_consumer, timer, lottery, account
+
 
 @pytest.fixture
 def get_keyhash():
