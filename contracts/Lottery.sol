@@ -288,10 +288,13 @@ contract Lottery is Ownable, Testable {
 
                 // Calculate prize
                 uint prize = prizeForMatching(matchingNumbers, _lotteryId);
-                
-                // Transfer prize to player
-                payable(address(msg.sender)).transfer(prize);
 
+                if(prize != 0){
+
+                    // Transfer prize to player
+                    payable(address(msg.sender)).transfer(prize);
+                }
+                
                 // Set claimed flag of ticket to true
                 playerTickets[msg.sender][i].claimed = true;
             }
@@ -324,7 +327,7 @@ contract Lottery is Ownable, Testable {
     function expand(
         uint256 randomValue)
 
-        internal 
+        public 
         view 
         returns (uint256[] memory expandedValues) {
 

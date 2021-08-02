@@ -18,6 +18,7 @@ from conftest import (
 )
 
 VALID_INPUT = np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY).tolist()
+WINNING_NUMBERS = [23, 26, 11, 20, 16, 25]
 
 
 @pytest.mark.parametrize(
@@ -225,5 +226,44 @@ def test_revert_enter_local(
     for i in range(len(accounts)):
         with reverts():
             tx3 = lottery.enter(numbers, {"from": get_account(i), "value": fee})
-        
+
+def test_valid_claim_prize_local(start_lottery_open):
+
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")            
+
+    vrf_consumer, _, lottery, account = start_lottery_open
+
+    lottery_id = lottery.lottoId()
+    lottery.setCurrentTime(ORIGIN_TIME+10, {"from": get_account()})
+    for i in range(len(accounts)-1):
+        randnums = np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
+        tx1 = lottery.enter(randnums.tolist(), {"from": get_account(i), "value": FEE})
+
+    lottery.enter(WINNING_NUMBERS, {"from": get_account(9), "value": FEE})
+    old_balance = get_account(9).balance()
+    lottery.setCurrentTime(ORIGIN_TIME+105, {"from": account})
+
+    tx2 = lottery.drawNumbers({"from": account})
+    tx2.wait(1)
+
+    request_id = tx2.events["RequestNumbers"]["requestId"]
+    tx3 = get_contract("vrf_coordinator").callBackWithRandomness(
+        request_id,
+        777,
+        vrf_consumer.address,
+        {"from": get_account()})
+    
+    # Act
+    for i in range(len(accounts)):
+        lottery.claimPrize(lottery_id, {"from": get_account(i)})
+
+    new_balance = get_account(9).balance()
+
+    # Assert
+    assert lottery.balance() == 0
+    assert old_balance < new_balance
+
+
 
