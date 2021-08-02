@@ -265,5 +265,27 @@ def test_valid_claim_prize_local(start_lottery_open):
     assert lottery.balance() == 0
     assert old_balance < new_balance
 
+    for i in range(len(accounts)):
+        old = get_account(i).balance()
+        lottery.claimPrize(lottery_id, {"from": get_account(i)})
+        new = get_account(i).balance()
+        assert old == new 
 
+def test_revert_claim_prize_local(start_lottery_open):
 
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+
+    _, _, lottery, _ = start_lottery_open
+    lottery_id = lottery.lottoId()
+    lottery.setCurrentTime(ORIGIN_TIME+10, {"from": get_account()})
+
+    # Act
+    with reverts():
+        lottery.claimPrize(lottery_id, {"from": get_account()})
+
+    lottery.setCurrentTime(ORIGIN_TIME+105, {"from": get_account()})
+
+    with reverts():
+        lottery.claimPrize(lottery_id, {"from": get_account()})
