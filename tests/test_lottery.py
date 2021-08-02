@@ -158,16 +158,54 @@ def test_valid_enter_local(start_lottery):
     # Arrange
     if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
         pytest.skip("Only for local testing")
-    _, _, lottery, account = start_lottery
+    _, _, lottery, _ = start_lottery
 
     # Act
-    for account in accounts:
-        randnums= np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
-        tx = lottery.enter(randnums.tolist(), {"from": account, "value": FEE})
-        nums = lottery.getTicketNumber(0, {"from": account})
+    for i in range(len(accounts)):
+        randnums = np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
+        tx1 = lottery.enter(randnums.tolist(), {"from": get_account(i), "value": FEE})
+        tx2 = lottery.getTicketNumber.transact(0, {"from": get_account(i)})
+        nums = tx2.return_value
+        print(f"Account: {get_account(i).address}\nNumpy Numbers: {randnums.tolist()}\nNumbers stored in contract:{nums}")
 
         # Assert
-        assert isinstance(tx.txid, str)
+        assert isinstance(tx1.txid, str)
+        assert isinstance(tx2.txid, str)
         assert nums == randnums.tolist()
+
+@pytest.mark.parametrize(
+    "starting_time,closing_time,TIME,numbers,fee",
+    [(),
+    (),
+    (),
+    (),]
+)
+def test_revert_enter_local(
+    deploy_all_contracts,
+    starting_time,
+    closing_time,
+    TIME,
+    numbers,
+    fee):
+
+    # Arrange
+    if network.show_active() not in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
+        pytest.skip("Only for local testing")
+    _, _, lottery = deploy_all_contracts
+    account = get_account()
+    lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
+
+    tx1 = lottery.startLottery(
+        starting_time,
+        closing_time,
+        VALID_PRIZE_DISTRIBUTION,
+        {"from": account})
+
+    lottery.setCurrentTime(TIME, {"from": account})
+
+    # Act
+    for i in range(len(accounts)):
+        with reverts():
+            tx3 = lottery.enter(numbers, {"from": get_account(i), "value": fee})
         
 
