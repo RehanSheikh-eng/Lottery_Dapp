@@ -10,10 +10,7 @@ class App extends Component {
         web3: null,
         accounts: null,
         chainid: null,
-        vyperStorage: null,
-        vyperValue: 0,
-        vyperInput: 0,
-        solidityStorage: null,
+        Lottery: null,
         solidityValue: 0,
         solidityInput: 0,
     }
@@ -53,21 +50,14 @@ class App extends Component {
             return
         }
 
-        const vyperStorage = await this.loadContract("dev", "VyperStorage")
-        const solidityStorage = await this.loadContract("dev", "SolidityStorage")
+        const Lottery = await this.loadContract("dev", "Lottery")
 
-        if (!vyperStorage || !solidityStorage) {
+        if (!Lottery) {
             return
         }
 
-        const vyperValue = await vyperStorage.methods.get().call()
-        const solidityValue = await solidityStorage.methods.get().call()
-
         this.setState({
-            vyperStorage,
-            vyperValue,
-            solidityStorage,
-            solidityValue,
+            Lottery,
         })
     }
 
@@ -96,22 +86,6 @@ class App extends Component {
         return new web3.eth.Contract(contractArtifact.abi, address)
     }
 
-    changeVyper = async (e) => {
-        const {accounts, vyperStorage, vyperInput} = this.state
-        e.preventDefault()
-        const value = parseInt(vyperInput)
-        if (isNaN(value)) {
-            alert("invalid value")
-            return
-        }
-        await vyperStorage.methods.set(value).send({from: accounts[0]})
-            .on('receipt', async () => {
-                this.setState({
-                    vyperValue: await vyperStorage.methods.get().call()
-                })
-            })
-    }
-
     changeSolidity = async (e) => {
         const {accounts, solidityStorage, solidityInput} = this.state
         e.preventDefault()
@@ -131,8 +105,7 @@ class App extends Component {
     render() {
         const {
             web3, accounts, chainid,
-            vyperStorage, vyperValue, vyperInput,
-            solidityStorage, solidityValue, solidityInput
+            Lottery, solidityValue, solidityInput
         } = this.state
 
         if (!web3) {
@@ -143,17 +116,17 @@ class App extends Component {
             return <div>Wrong Network! Switch to your local RPC "Localhost: 8545" in your Web3 provider (e.g. Metamask)</div>
         }
 
-        if (!vyperStorage || !solidityStorage) {
+        if (!Lottery) {
             return <div>Could not find a deployed contract. Check console for details.</div>
         }
 
         const isAccountsUnlocked = accounts ? accounts.length > 0 : false
 
-        return (<div className="App">
+        return (
+        <div className="App">
             <h1>Your Brownie Mix is installed and ready.</h1>
             <p>
-                If your contracts compiled and deployed successfully, you can see the current
-                storage values below.
+                Your accounts: {accounts[0]}
             </p>
             {
                 !isAccountsUnlocked ?
@@ -162,43 +135,6 @@ class App extends Component {
                     </p>
                     : null
             }
-            <h2>Vyper Storage Contract</h2>
-
-            <div>The stored value is: {vyperValue}</div>
-            <br/>
-            <form onSubmit={(e) => this.changeVyper(e)}>
-                <div>
-                    <label>Change the value to: </label>
-                    <br/>
-                    <input
-                        name="vyperInput"
-                        type="text"
-                        value={vyperInput}
-                        onChange={(e) => this.setState({vyperInput: e.target.value})}
-                    />
-                    <br/>
-                    <button type="submit" disabled={!isAccountsUnlocked}>Submit</button>
-                </div>
-            </form>
-
-            <h2>Solidity Storage Contract</h2>
-            <div>The stored value is: {solidityValue}</div>
-            <br/>
-            <form onSubmit={(e) => this.changeSolidity(e)}>
-                <div>
-                    <label>Change the value to: </label>
-                    <br/>
-                    <input
-                        name="solidityInput"
-                        type="text"
-                        value={solidityInput}
-                        onChange={(e) => this.setState({solidityInput: e.target.value})}
-                    />
-                    <br/>
-                    <button type="submit" disabled={!isAccountsUnlocked}>Submit</button>
-
-                </div>
-            </form>
         </div>)
     }
 }

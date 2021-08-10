@@ -25,6 +25,8 @@ networks:
     fee: 100000000000000000
     jobId: '29fa9aa13bf1468788b7cc4a500a45b8'
     update_interval: 60
+    cmd_settings:
+      mnemonic: hill law jazz limb penalty escape public dish stand bracket blue jar
     verify: False
   kovan:
     vrf_coordinator: '0xdD3782915140c8f3b190B5D67eAc6dc5760C46E9'

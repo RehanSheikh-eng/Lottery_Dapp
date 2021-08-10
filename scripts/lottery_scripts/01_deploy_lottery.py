@@ -1,11 +1,13 @@
-from brownie import Lottery, Timer, config, network
+from brownie import Lottery, Timer, VRFConsumer, config, network
 import numpy as np
 from scripts.helpful_scripts import (
     get_account,
     get_verify_status,
     get_contract,
+    fund_with_link,
     LOCAL_BLOCKCHAIN_ENVIRONMENTS
 )
+
 
 SIZE_OF_LOTTERY = 6
 MAX_VALID_NUMBER = 30
@@ -25,7 +27,7 @@ def deploy_lottery():
         timer_address = timer.address
 
     else:
-        timer_address = 0
+        timer_address = 0x0
 
     lottery = Lottery.deploy(
         SIZE_OF_LOTTERY,
@@ -33,6 +35,29 @@ def deploy_lottery():
         FEE,
         timer_address,
         {"from": account})
+
+    keyhash = config["networks"][network.show_active()]["keyhash"]
+    fee = config["networks"][network.show_active()]["fee"]
+    vrf_coordinator = get_contract("vrf_coordinator")
+    link_token = get_contract("link_token")
+
+    print(f"Lottery Contract Deployed at:{lottery.address}")
+
+    vrf_contract = VRFConsumer.deploy(
+        keyhash,
+        vrf_coordinator,
+        link_token,
+        lottery.address,
+        fee,
+        {"from": account},
+        publish_source=get_verify_status(),
+    )
+
+    fund_with_link(vrf_contract, amount=config["networks"][network.show_active()]["fee"])
+
+    lottery.initialize(
+        vrf_contract.address,
+        {"from": get_account()})
 
 def start_and_enter_lottery():
 
@@ -51,4 +76,4 @@ def start_and_enter_lottery():
 
 def main():
     deploy_lottery()
-    start_and_enter_lottery()
+    #start_and_enter_lottery()
