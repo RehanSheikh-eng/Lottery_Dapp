@@ -1,69 +1,83 @@
-import React, {Component} from "react"
+import React, {useEffect, useState} from "react"
 import './App.css'
-import {getWeb3} from "./getWeb3"
+import Web3 from "web3";
+import {getWeb3} from "./utils/getWeb3"
 import map from "./artifacts/deployments/map.json"
-import {getEthereum} from "./getEthereum"
+import {getEthereum} from "./utils/getEthereum"
+import AppBar from '@material-ui/core/AppBar';
+import Toolbar from '@material-ui/core/Toolbar';
+import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import MenuIcon from '@material-ui/icons/Menu';
+import Container from '@material-ui/core/Container';
+import { makeStyles } from '@material-ui/core/styles';
+import { connectWallet, getCurrentWalletConnected } from "./utils/interact.js";
+  
 
-class App extends Component {
+export default function App() {
 
-    state = {
-        web3: null,
-        accounts: null,
-        chainid: null,
-        Lottery: null,
-        solidityValue: 0,
-        solidityInput: 0,
-    }
+    useEffect(async () => {
+        await loadWeb3();
+        await loadBlockchainData();
+        addWalletListener()
+    }, [])
 
-    componentDidMount = async () => {
+    const classes = useStyles();
 
-        // Get network provider and web3 instance.
-        const web3 = await getWeb3()
+    const [loader, setLoader] = useState(true);
+    const [lottery, setLottery] = useState(null);
+    const [networkId, setNetworkId] = useState(NaN);
+    const [status, setStatus] = useState("");
+    const [walletAddress, setWallet] = useState("");
 
-        // Try and enable accounts (connect metamask)
-        try {
-            const ethereum = await getEthereum()
-            ethereum.enable()
-        } catch (e) {
-            console.log(`Could not enable accounts. Interaction with contracts not available.
-            Use a modern browser with a Web3 plugin to fix this issue.`)
-            console.log(e)
+    const loadWeb3 = async() => {
+        if(window.ethereum)
+        {
+            window.web3 = new Web3(window.ethereum);
+            await window.ethereum.enable();
         }
-
-        // Use web3 to get the user's accounts
-        const accounts = await web3.eth.getAccounts()
-
-        // Get the current chain id
-        const chainid = parseInt(await web3.eth.getChainId())
-
-        this.setState({
-            web3,
-            accounts,
-            chainid
-        }, await this.loadInitialContracts)
-
+        else if(window.web3)
+        {
+            window.web3 = new Web3(window.web3.currentProvider);
+        }
+        else
+        {
+            window.alert("Metamask not detected");
+        }
     }
+  
+    const loadBlockchainData = async () => {
 
-    loadInitialContracts = async () => {
-        if (this.state.chainid <= 42) {
+        setLoader(true);
+        const web3 = window.web3;
+    
+        const accounts=await web3.eth.getAccounts();
+        setWallet(accounts[0]);
+        console.log("accounts:"+accounts);
+
+        const networkId = await web3.eth.net.getId();
+        setNetworkId(networkId);
+        console.log("networkId:"+networkId);
+
+        if (networkId <= 42) {
             // Wrong Network!
             return
         }
 
-        const Lottery = await this.loadContract("dev", "Lottery")
+        const Lottery = await loadContract("dev", "Lottery")
+        setLottery(Lottery);
+        console.log("Contract Deployed at:"+Lottery.options.address)
 
         if (!Lottery) {
-            return
+            window.alert("Smart contract is not deployed");
         }
-
-        this.setState({
-            Lottery,
-        })
+        setLoader(false);
     }
 
-    loadContract = async (chain, contractName) => {
+    const loadContract = async (chain, contractName) => {
         // Load a deployed contract instance into a web3 contract object
-        const {web3} = this.state
+        const web3 = window.web3;
 
         // Get the address of the most recent deployment from the deployment map
         let address
@@ -86,57 +100,103 @@ class App extends Component {
         return new web3.eth.Contract(contractArtifact.abi, address)
     }
 
-    changeSolidity = async (e) => {
-        const {accounts, solidityStorage, solidityInput} = this.state
-        e.preventDefault()
-        const value = parseInt(solidityInput)
-        if (isNaN(value)) {
-            alert("invalid value")
-            return
-        }
-        await solidityStorage.methods.set(value).send({from: accounts[0]})
-            .on('receipt', async () => {
-                this.setState({
-                    solidityValue: await solidityStorage.methods.get().call()
-                })
-            })
-    }
-
-    render() {
-        const {
-            web3, accounts, chainid,
-            Lottery, solidityValue, solidityInput
-        } = this.state
-
-        if (!web3) {
-            return <div>Loading Web3, accounts, and contracts...</div>
-        }
-
-        if (isNaN(chainid) || chainid <= 42) {
-            return <div>Wrong Network! Switch to your local RPC "Localhost: 8545" in your Web3 provider (e.g. Metamask)</div>
-        }
-
-        if (!Lottery) {
-            return <div>Could not find a deployed contract. Check console for details.</div>
-        }
-
-        const isAccountsUnlocked = accounts ? accounts.length > 0 : false
-
-        return (
-        <div className="App">
-            <h1>Your Brownie Mix is installed and ready.</h1>
-            <p>
-                Your accounts: {accounts[0]}
-            </p>
-            {
-                !isAccountsUnlocked ?
-                    <p><strong>Connect with Metamask and refresh the page to
-                        be able to edit the storage fields.</strong>
-                    </p>
-                    : null
+    function addWalletListener() {
+        if (window.ethereum) {
+          window.ethereum.on("accountsChanged", (accounts) => {
+            if (accounts.length > 0) {
+              setWallet(accounts[0]);
+              setStatus("👆🏽 Write a message in the text-field above.");
+            } else {
+              setWallet("");
+              setStatus("🦊 Connect to Metamask using the top right button.");
             }
-        </div>)
+          });
+        } else {
+          setStatus(
+            <p>
+              {" "}
+              🦊{" "}
+              <a target="_blank" href={`https://metamask.io/download.html`}>
+                You must install Metamask, a virtual Ethereum wallet, in your
+                browser.
+              </a>
+            </p>
+          );
+        }
     }
-}
+    
+    const connectWalletPressed = async () => {
+        const walletResponse = await connectWallet();
+        setStatus(walletResponse.status);
+        setWallet(walletResponse.address);
+    }; 
 
-export default App
+    if(loader){
+      return <div >Loading</div>
+    }
+
+    if (isNaN(networkId) || networkId <= 42) {
+        return <div>Wrong Network! Switch to your local RPC "Localhost: 8545" in your Web3 provider (e.g. Metamask)</div>
+    }
+
+    if (!lottery) {
+        return <div>Could not find a deployed contract. Check console for details.</div>
+    }
+  
+    return (
+        <div className="App">
+            <nav>
+                <AppBar position="static">
+                    <Toolbar>
+
+                        <IconButton 
+                            edge="start"
+                            className={classes.menuButton}
+                            color="inherit"
+                            aria-label="menu"
+                        >
+                            <MenuIcon />
+                        </IconButton>
+
+                        <Typography variant="h6" className={classes.title}>
+                            Lottery
+                        </Typography>
+
+                        <Button 
+                        color="inherit"
+                        variant="contained"
+                        onClick={connectWalletPressed}
+                        >
+                            {
+                            walletAddress.length > 0 ? 
+                            ("Connected: " +
+                            String(walletAddress).substring(0, 6) +
+                            "..." +
+                            String(walletAddress).substring(38)) :
+                            (<span>Connect Wallet</span>)
+                            }
+
+                        </Button>
+                    </Toolbar>
+                </AppBar>
+            </nav>
+            <div>
+                <Container maxWidth="lg">
+                    <Button variant="contained"> BUY TICKETS </Button>
+                </Container>
+            </div>
+        </div>
+    );
+  }
+  
+  const useStyles = makeStyles((theme) => ({
+    root: {
+      flexGrow: 1,
+    },
+    menuButton: {
+      marginRight: theme.spacing(2),
+    },
+    title: {
+      flexGrow: 1,
+    },
+  }));
