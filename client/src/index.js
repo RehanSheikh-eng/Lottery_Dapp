@@ -2,12 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import ConnectButton from './ConnectButton';
+import LotteryAppBar from './components/LotteryAppBar';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <ConnectButton></ConnectButton>
+    <LotteryAppBar></LotteryAppBar>
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -5,7 +5,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import {
   connectWallet,
   getCurrentWalletConnected,
-} from "./utils/interact";
+} from "../utils/interact";
 
 const useStyles = makeStyles({
   root: {
