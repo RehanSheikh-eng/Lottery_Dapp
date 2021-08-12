@@ -23,7 +23,6 @@ const loadContract = async (chain, contractName) => {
         const contractAbi = contractArtifact.abi
         const provider = new ethers.providers.Web3Provider(window.ethereum)
         const iface = new ethers.utils.Interface(contractAbi);
-        console.log(iface.format(ethers.utils.FormatTypes.full));
         return new ethers.Contract(address, iface, provider)
     }
 }
