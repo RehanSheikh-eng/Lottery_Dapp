@@ -71,8 +71,13 @@ contract Lottery is Ownable, Testable {
         _;
     }
 
+    //-------------------------------------------------------------------------
+    // EVENTS
+    //-------------------------------------------------------------------------
 
     event RequestNumbers(uint256 lotteryId, bytes32 requestId);
+
+    event BuyTicket(address buyer, uint value);
 
     //-------------------------------------------------------------------------
     // CONSTRUCTOR 
@@ -261,6 +266,8 @@ contract Lottery is Ownable, Testable {
 
         // Adds Ticket struct to mapping with players address as key
         playerTickets[msg.sender].push(Ticket(lottoId, _lottoNumbers, false));
+
+        emit BuyTicket(msg.sender, msg.value);
 
     }
 

@@ -3,11 +3,12 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import LotteryAppBar from './components/LotteryAppBar';
+import Balance from './components/Balance';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <LotteryAppBar></LotteryAppBar>
+    <Balance></Balance>
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -76,4 +76,4 @@ def start_and_enter_lottery():
 
 def main():
     deploy_lottery()
-    #start_and_enter_lottery()
+    start_and_enter_lottery()
