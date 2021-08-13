@@ -4,11 +4,12 @@ import './index.css';
 import App from './App';
 import LotteryAppBar from './components/LotteryAppBar';
 import Balance from './components/Balance';
+import EnterButton from './components/EnterButton';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <Balance></Balance>
+    <EnterButton></EnterButton>
   </React.StrictMode>,
   document.getElementById('root')
 );
