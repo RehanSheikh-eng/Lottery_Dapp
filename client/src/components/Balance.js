@@ -73,7 +73,8 @@ export default function Balance(){
         const lottery = await loadContract("dev", "Lottery");
         lottery.on("BuyTicket", async (author, value, event) => {
             console.log(event);
-            await fetchCurrentBalance();
+            const ethbalance = await fetchCurrentBalance();
+            setEthBalance(ethbalance);
         })
     }
 

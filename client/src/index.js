@@ -4,12 +4,21 @@ import './index.css';
 import App from './App';
 import LotteryAppBar from './components/LotteryAppBar';
 import Balance from './components/Balance';
-import EnterButton from './components/EnterButton';
+import EnterButtonV2 from './components/EnterButtonV2';
+import ConnectButton from './components/ConnectButton';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
-    <EnterButton></EnterButton>
+    <div>
+    <ConnectButton></ConnectButton>
+    </div>
+    <div>
+    <EnterButtonV2></EnterButtonV2>
+    </div>
+    <div>
+    <Balance></Balance>
+    </div>
   </React.StrictMode>,
   document.getElementById('root')
 );
