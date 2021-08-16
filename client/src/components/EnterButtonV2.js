@@ -10,6 +10,7 @@ import {
 export default function EnterButtonV2() {
 
     const numberOptions = [
+        { value: 0, label: 'None'},
         { value: 1, label: '1' },
         { value: 2, label: '2' },
         { value: 3, label: '3' },
@@ -43,13 +44,43 @@ export default function EnterButtonV2() {
       ];
 
     const [state, setState] = useState({
-        num1: 0,
-        num2: 0,
-        num3: 0,
-        num4: 0,
-        num5: 0,
-        num6: 0,
+        num1: "",
+        num2: "",
+        num3: "",
+        num4: "",
+        num5: "",
+        num6: "",
     });
+
+    const [disabled, setDisabled] = useState();
+    const [lottery, setLottery] = useState();
+    const [provider, setProvider] = useState();
+    const [lotteryId, setLotteryId] = useState();
+    const [lotteryInfo, setLotteryInfo] = useState();
+
+    useEffect(async () => {
+
+        const lottery = await loadContract("dev", "Lottery");
+        setLottery(lottery);
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        setProvider(provider);
+        
+        const lotteryId = await lottery.lottoId()
+        setLotteryId(lotteryId);
+
+        const lotteryInfo = await lottery.getLotteryInfo(lotteryId);
+        setLotteryInfo(lotteryInfo);
+
+        if (lotteryInfo[2] === 0){
+            setDisabled(true);
+        }
+        else if (lotteryInfo[2] === 1){
+            setDisabled(false)
+        }
+
+        addLotteryContractListner();
+    }, []);
 
     const handleChange = e => {
         setState({
@@ -59,8 +90,6 @@ export default function EnterButtonV2() {
     };
 
     const handleBuyTicket = async () => {
-        const lottery = await loadContract("dev", "Lottery");
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
         const { address, status } = await getCurrentWalletConnected();
         console.log(address);
         const signer = provider.getSigner();
@@ -69,8 +98,19 @@ export default function EnterButtonV2() {
         const numbers = Object.values(state);
 
         const tx = await lottery_rw.enter(numbers, {value: ethers.utils.parseEther("0.1")});
-
     };
+
+    async function addLotteryContractListner(){
+        const lottery = await loadContract("dev", "Lottery");
+        lottery.on("LotteryOpen", async (author, value, event) => {
+            console.log(event);
+            setDisabled(false);
+        })
+        lottery.on("LotteryClose", async (author, value, event) => {
+            console.log(event);
+            setDisabled(true);
+        })
+    }
 
     return(
         <div>
@@ -122,7 +162,7 @@ export default function EnterButtonV2() {
                 Your Numbers: {state.num1 + ", " + state.num2 + ", " + state.num3 + ", " + state.num4 + ", " + state.num5 + ", " + state.num6}
             </div>
             <div>
-                <Button onClick={handleBuyTicket}>BUY TICKET</Button>
+                <Button onClick={handleBuyTicket} disabled={disabled}>BUY TICKET</Button>
             </div>
         </div>
     );
