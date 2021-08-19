@@ -7,14 +7,13 @@ from scripts.helpful_scripts import (
     fund_with_link,
     LOCAL_BLOCKCHAIN_ENVIRONMENTS
 )
-
-
-SIZE_OF_LOTTERY = 6
-MAX_VALID_NUMBER = 30
-FEE = 100_000_000_000_000_000
-ORIGIN_TIME = 5
-VALID_PRIZE_DISTRIBUTION = [50, 20, 10, 10, 5, 5]
-
+from ...tests.conftest import (
+    SIZE_OF_LOTTERY,
+    MAX_VALID_NUMBER, 
+    FEE,
+    ORIGIN_TIME,
+    VALID_PRIZE_DISTRIBUTION
+)
 
 def deploy_lottery():
 

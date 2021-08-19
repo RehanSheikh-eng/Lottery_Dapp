@@ -93,7 +93,7 @@ export default function Balance(){
 
     return(
         <Container maxWidth="lg" className={classes.balanceContainer}>
-            <Typography align="center" variant="h2"> The Speed Lottery </Typography>
+            <Typography align="center" variant="h2"> Lottery </Typography>
             <div>
                 <Typography 
                     align="center"

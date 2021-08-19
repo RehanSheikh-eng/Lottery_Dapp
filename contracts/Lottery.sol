@@ -81,7 +81,7 @@ contract Lottery is Ownable, Testable {
 
     event LotteryOpen(uint256 lotteryId);
 
-    event LotteryClose(uint256 lotteryId);
+    event LotteryClose(uint256 lotteryId, uint[] winningNumbers);
 
     //-------------------------------------------------------------------------
     // CONSTRUCTOR 
@@ -235,7 +235,7 @@ contract Lottery is Ownable, Testable {
             allLotteries[lottoId].winningNumbers = expand(_randomness);
             allLotteries[lottoId].lotteryState = States.COMPLETED;
         }
-        emit LotteryClose(lottoId);
+        emit LotteryClose(lottoId, allLotteries[lottoId].winningNumbers);
     }
 
     //-------------------------------------------------------------------------

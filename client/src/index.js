@@ -6,6 +6,7 @@ import LotteryAppBar from './components/LotteryAppBar';
 import Balance from './components/Balance';
 import EnterButtonV2 from './components/EnterButtonV2';
 import ConnectButton from './components/ConnectButton';
+import LotteryHub from './components/LotteryHub';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
@@ -18,6 +19,9 @@ ReactDOM.render(
     </div>
     <div>
     <Balance></Balance>
+    </div>
+    <div>
+    <LotteryHub></LotteryHub>
     </div>
   </React.StrictMode>,
   document.getElementById('root')

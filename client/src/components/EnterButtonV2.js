@@ -10,7 +10,7 @@ import {
 export default function EnterButtonV2() {
 
     const numberOptions = [
-        { value: 0, label: 'None'},
+        { value: 0, label: '0'},
         { value: 1, label: '1' },
         { value: 2, label: '2' },
         { value: 3, label: '3' },
@@ -72,11 +72,10 @@ export default function EnterButtonV2() {
         const lotteryInfo = await lottery.getLotteryInfo(lotteryId);
         setLotteryInfo(lotteryInfo);
 
-        if (lotteryInfo[2] === 0){
+        if (lotteryInfo[2] === 1){
+            setDisabled(false);
+        } else {
             setDisabled(true);
-        }
-        else if (lotteryInfo[2] === 1){
-            setDisabled(false)
         }
 
         addLotteryContractListner();
@@ -96,17 +95,17 @@ export default function EnterButtonV2() {
         const lottery_rw = lottery.connect(signer);
 
         const numbers = Object.values(state);
-
-        const tx = await lottery_rw.enter(numbers, {value: ethers.utils.parseEther("0.1")});
+        const tx = await lottery_rw.enter(numbers.map(x=>+x), {value: ethers.utils.parseEther("0.1")});
     };
 
     async function addLotteryContractListner(){
         const lottery = await loadContract("dev", "Lottery");
-        lottery.on("LotteryOpen", async (author, value, event) => {
+        lottery.on("LotteryOpen", async (lotteryId, event) => {
             console.log(event);
             setDisabled(false);
+            setLotteryId(lotteryId);
         })
-        lottery.on("LotteryClose", async (author, value, event) => {
+        lottery.on("LotteryClose", async (lotteryId, event) => {
             console.log(event);
             setDisabled(true);
         })
