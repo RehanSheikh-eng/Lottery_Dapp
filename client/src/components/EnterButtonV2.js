@@ -6,57 +6,59 @@ import { ethers } from 'ethers'
 import {
     getCurrentWalletConnected,
   } from "../utils/interact";
+import "./EnterButtonV2.css"
+import ball from "../tennis-ball.svg"
+import { makeStyles } from '@material-ui/core/styles';
+
+const useStyles = makeStyles({
+    root: {
+        alignItems: "center",
+        border: 0,
+        borderRadius: "16px",
+        boxShadow: "rgb(14 14 44 / 40%) 0px -1px 0px 0px inset",
+        display: "inline-flex",
+        fontSize: "16px",
+        fontWeight: 600,
+        justifyContent: "center",
+        letterSpacing: "0.03em",
+        lineHeight: 1,
+        opacity: 1,
+        outline: "0px",
+        height: "48px",
+        padding: "0px 24px",
+        backgroundColor: "rgb(31, 199, 212)",
+        color: "white",
+        maxWidthidth: "280px",
+
+        '&:hover': {
+            backgroundColor: "rgba(31, 199, 212, 0.6)",
+        }
+    },
+    disabled: {
+        backgroundColor: "rgba(31, 199, 212, 0.4)",
+    },
+    
+  });
+
 
 export default function EnterButtonV2() {
 
-    const numberOptions = [
-        { value: 0, label: '0'},
-        { value: 1, label: '1' },
-        { value: 2, label: '2' },
-        { value: 3, label: '3' },
-        { value: 4, label: '4'},
-        { value: 5, label: '5'},
-        { value: 6, label: '6'},
-        { value: 7, label: '7'},
-        { value: 8, label: '8'},
-        { value: 9, label: '9'},
-        { value: 10, label: '10'},
-        { value: 11, label: '11'},
-        { value: 12, label: '12'},
-        { value: 13, label: '13'},
-        { value: 14, label: '14'},
-        { value: 15, label: '15'},
-        { value: 16, label: '16'},
-        { value: 17, label: '17'},
-        { value: 18, label: '18'},
-        { value: 19, label: '19'},
-        { value: 20, label: '20'},
-        { value: 21, label: '21'},
-        { value: 22, label: '22'},
-        { value: 23, label: '23'},
-        { value: 24, label: '24'},
-        { value: 25, label: '25'},
-        { value: 26, label: '26'},
-        { value: 27, label: '27'},
-        { value: 28, label: '28'},
-        { value: 29, label: '29'},
-        { value: 30, label: '30'},
-      ];
+    const [state, setState] = useState({});
 
-    const [state, setState] = useState({
-        num1: "",
-        num2: "",
-        num3: "",
-        num4: "",
-        num5: "",
-        num6: "",
-    });
+    const classes = useStyles();
 
     const [disabled, setDisabled] = useState();
     const [lottery, setLottery] = useState();
     const [provider, setProvider] = useState();
+    const [lotterySize, setLotterySize] = useState();
+    const [maxValidNumber, setMaxValidNumber] = useState();
     const [lotteryId, setLotteryId] = useState();
     const [lotteryInfo, setLotteryInfo] = useState();
+    const [numberOptions, setNumberOptions] = useState([]);
+    const [rotation, setRotation] = useState([]);
+    const [hueRotate, setHueRotate] = useState([]);
+
+
 
     useEffect(async () => {
 
@@ -65,8 +67,21 @@ export default function EnterButtonV2() {
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         setProvider(provider);
+
+        const lotterySize = await lottery.sizeOfLottery();
+        setLotterySize(lotterySize.toNumber());
+
+        const stateobj = {};
+        for (let i = 0; i < lotterySize.toNumber(); i++) {
+            const nameId = `num${i+1}`;
+            stateobj[nameId] = "0";
+        };
+        setState(stateobj);
+
+        const maxValidNumber = await lottery.maxValidNumber();
+        setMaxValidNumber(maxValidNumber.toNumber());
         
-        const lotteryId = await lottery.lottoId()
+        const lotteryId = await lottery.lottoId();
         setLotteryId(lotteryId);
 
         const lotteryInfo = await lottery.getLotteryInfo(lotteryId);
@@ -78,14 +93,43 @@ export default function EnterButtonV2() {
             setDisabled(true);
         }
 
+        const numberOptions = [];
+        for (let i = 0; i < maxValidNumber.toNumber() + 1; i++) {
+            const obj = { value: `${i}`, label: i, };
+            numberOptions.push(obj);
+        }
+        setNumberOptions(numberOptions);
+
+        const rotation = [];
+        for (let i = 0; i < lotterySize.toNumber(); i++) {
+            let rot = Math.floor(Math.random()*15 + 7);
+            rot *= Math.round(Math.random()) ? 1 : -1;
+            rotation.push(rot);
+        };
+        setRotation(rotation);
+
+        const hueRotate = []
+        for (let i = 0; i < lotterySize.toNumber(); i++) {
+            let numrots = 360/lotterySize.toNumber(); 
+            let rot = numrots * i;
+            hueRotate.push(rot);
+        };
+        setHueRotate(hueRotate);
+
         addLotteryContractListner();
+
     }, []);
 
     const handleChange = e => {
+        const value = e.target.value;
+        console.log(value);
+        console.log(typeof value);
+        console.log(e.target.name);
+        console.log(typeof e.target.name);
         setState({
         ...state,
-        [e.target.name]: e.target.value,
-        })
+        [e.target.name]: value,
+        });
     };
 
     const handleBuyTicket = async () => {
@@ -96,6 +140,18 @@ export default function EnterButtonV2() {
 
         const numbers = Object.values(state);
         const tx = await lottery_rw.enter(numbers.map(x=>+x), {value: ethers.utils.parseEther("0.1")});
+
+        const stateobj = {};
+        for (let i = 0; i < lotterySize; i++) {
+            const nameId = `num${i+1}`;
+            stateobj[nameId] = "0";
+        };
+        
+        setState(stateobj);
+        Array.from(document.querySelectorAll("select")).forEach(
+            select => (select.value = "0")
+          );
+
     };
 
     async function addLotteryContractListner(){
@@ -114,54 +170,60 @@ export default function EnterButtonV2() {
     return(
         <div>
             <div>
-                <label for="num1">Number 1:</label>
-                <select onChange={handleChange} name="num1" id="num1">
-                    {
-                        numberOptions.map((item) =>
-                            <option key={item.value} value={item.value}>{item.label}</option> 
-                    )};
-                </select>
-                <label for="num2">Number 2:</label>
-                <select onChange={handleChange} name="num2" id="num2">
-                    {
-                        numberOptions.map((item) =>
-                            <option key={item.value} value={item.value}>{item.label}</option> 
-                    )};
-                </select>
-                <label for="num3">Number 3:</label>
-                <select onChange={handleChange} name="num3" id="num3">
-                    {
-                        numberOptions.map((item) =>
-                            <option key={item.value} value={item.value}>{item.label}</option> 
-                    )};
-                </select>
-                <label for="num4">Number 4:</label>
-                <select onChange={handleChange} name="num4" id="num4">
-                    {
-                        numberOptions.map((item) =>
-                            <option key={item.value} value={item.value}>{item.label}</option> 
-                    )};
-                </select>
-                <label for="num5">Number 5:</label>
-                <select onChange={handleChange} name="num5" id="num5">
-                    {
-                        numberOptions.map((item) =>
-                            <option key={item.value} value={item.value}>{item.label}</option> 
-                    )};
-                </select>
-                <label for="num6">Number 6:</label>
-                <select onChange={handleChange} name="num6" id="num6">
-                    {
-                        numberOptions.map((item) =>
-                            <option key={item.value} value={item.value}>{item.label}</option> 
-                    )};
-                </select>
+                <div style={{
+                        textAlign: "center",
+                        marginBottom: "10px",
+                        fontSize: "20px"}}>
+                    <h2> 
+                        Your Ticket : 
+                    </h2>
+                </div>
             </div>
-            <div>
-                Your Numbers: {state.num1 + ", " + state.num2 + ", " + state.num3 + ", " + state.num4 + ", " + state.num5 + ", " + state.num6}
+            <div className="number-select-container">
+                {
+                    Object.keys(state).map((key, i) => (
+                        <div className="circle">
+                            <img 
+                                src={ball}
+                                width="80px"
+                                height="80px" 
+                                style={{
+                                    position: "absolute",
+                                    zIndex: 2,
+                                    filter: `hue-rotate(${hueRotate[i]}deg)`,
+                                }}
+                                className="lottery-img"
+                            />
+                            <select 
+                                onChange={handleChange}
+                                name={key}
+                                id={key}
+                                style={{
+                                    transform: `rotate(${rotation[i]}deg)`,
+                                }}
+                                value={state.key}
+                            >
+                                {
+                                    numberOptions.map((item, key) =>
+                                        <option key={key} value={item.value}>{item.label}</option> 
+                                    )
+                                }
+                            </select>
+                        </div>
+                    ))
+                }
             </div>
-            <div>
-                <Button onClick={handleBuyTicket} disabled={disabled}>BUY TICKET</Button>
+            <div className="buy-button-container">
+                <Button 
+                    onClick={handleBuyTicket}
+                    disabled={disabled}
+                    classes={{
+                        root: classes.root,
+                        disabled: classes.disabled,
+                    }}
+                >
+                    BUY TICKET
+                </Button>
             </div>
         </div>
     );

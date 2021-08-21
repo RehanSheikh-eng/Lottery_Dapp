@@ -1,0 +1,119 @@
+.buy_box_container {
+    width: 756px;
+    background: rgb(231, 227, 235);
+    border-radius: 24px;
+    color: rgb(40, 13, 95);
+    overflow: hidden;
+    position: relative;
+    padding: 1px 1px 3px;
+  }
+  
+  .buy_box {
+    width: 100%;
+    height: 100%;
+    overflow: inherit;
+    background: white;
+    border-radius: 24px;
+  }
+  
+  .buy_box_top_bar {
+      background: linear-gradient(111.68deg, rgb(242, 236, 242) 0%, rgb(232, 242, 246) 100%);
+      border-radius: 24px 24px 0px 0px;
+      padding: 16px 24px
+  }
+  
+  .buy_box_top_bar_content {
+    display: flex;
+    justify-content: space-between;
+  }
+  
+  .buy_box_top_bar_content_left {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.1;
+    color: rgb(40, 13, 95);
+  }
+  
+  .buy_box_top_bar_content_right {
+   color: rgb(40, 13, 95);
+   font-size: 16px;
+   font-weight: 400;
+   line-height: 1.5;
+   vertical-align: middle;
+  }
+  .buy_box_main_box {
+    padding: 24px;
+  }
+  
+  .buy_box_main_box_content {
+    display: grid; 
+    grid-template-columns: 1fr 1fr 1fr; 
+    grid-template-rows: 1fr 1fr 1fr; 
+    gap: 0px 0px; 
+    grid-template-areas: 
+      "Prize-Pot Prize-Pot Prize-Pot"
+      "Buy-Button-Box Buy-Button-Box Buy-Button-Box"
+      "Buy-Button-Box Buy-Button-Box Buy-Button-Box"; 
+  }
+
+  .Prize-Pot { 
+    grid-area: Prize-Pot;
+    font-size: 20px;
+    line-height: 1.1;
+    font-weight: 400;
+    display: flex;
+    justify-content: center;
+  }
+  .Prize-Pot-text-container {
+    margin-left: 0px;
+    display: inline-block;
+    margin-right: 10px;
+  }
+  
+  .Prize-Pot-text {
+    display: inline-block;
+    vertical-align: middle;
+    
+  }
+  
+  .Prize-Pot-balance {
+    margin-left: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .Prize-Pot-balance-usd {
+    color: rgb(118, 69, 217);
+    font-weight: 600;
+    font-size: 40px;
+    text-align: left;
+    line-height: 1;
+  }
+  
+  .Prize-Pot-balance-ether {
+    color: rgb(122, 110, 170);
+    font-weight: 400;
+    line-height: 1.5;
+    font-size: 14px;
+    text-align: left;
+  }
+  
+  .Buy-Button-Box { 
+    grid-area: Buy-Button-Box;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  
+  
+  * {
+    font-family: Kanit, sans-serif;
+    margin: 0px;
+    padding: 0px;
+    border: 0px;
+    font-size: 100%;
+    vertical-align: baseline;
+  }

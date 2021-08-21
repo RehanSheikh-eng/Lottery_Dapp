@@ -2,26 +2,12 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
-import LotteryAppBar from './components/LotteryAppBar';
-import Balance from './components/Balance';
-import EnterButtonV2 from './components/EnterButtonV2';
-import ConnectButton from './components/ConnectButton';
-import LotteryHub from './components/LotteryHub';
 import * as serviceWorker from './serviceWorker';
 
 ReactDOM.render(
   <React.StrictMode>
     <div>
-    <ConnectButton></ConnectButton>
-    </div>
-    <div>
-    <EnterButtonV2></EnterButtonV2>
-    </div>
-    <div>
-    <Balance></Balance>
-    </div>
-    <div>
-    <LotteryHub></LotteryHub>
+      <App></App>
     </div>
   </React.StrictMode>,
   document.getElementById('root')

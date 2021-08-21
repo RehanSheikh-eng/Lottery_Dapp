@@ -1,0 +1,57 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+.circle {
+    height: 5em;
+    width: 5em;
+    margin: 10px;
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    border-radius: 50%;
+    /* background: url(../tennis-ball.svg);
+    background-size: cover;
+    filter: invert(36%) sepia(95%) saturate(500%) hue-rotate(165deg) brightness(102%) contrast(120%); */
+  }
+
+.circle:hover{
+    box-shadow: 0.375em 0.375em 0 0 rgba(15, 28, 63, 0.125);
+
+}
+
+.number-select-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-evenly;
+}
+
+select {
+    appearance: none;
+    background-color: transparent;
+    border: none;
+    padding: 0 1em 0 0;
+    margin: 0;
+    width: 100%;
+    font-family: inherit;
+    font-size: inherit;
+    cursor: inherit;
+    line-height: inherit;
+    outline: none;
+    text-align-last:right;
+    padding-right: 29px;
+    direction: rtl;
+    font-size: 24px;
+    text-shadow: white -0.75px -0.75px 0px, white 0.75px -0.75px 0px, white -0.75px 0.75px 0px, white 0.75px 0.75px 0px;
+    font-weight: 800;
+    z-index: 3;
+  }
+
+.buy-button-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+

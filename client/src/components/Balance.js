@@ -6,6 +6,8 @@ import { Container } from "@material-ui/core";
 import { Typography } from "@material-ui/core";
 import { makeStyles } from '@material-ui/core/styles';
 import { lineHeight } from "@material-ui/system";
+import "./Balance.css"
+import EnterButtonV2 from "./EnterButtonV2";
 
 
 const useStyles = makeStyles({
@@ -30,8 +32,6 @@ export default function Balance(){
     const [ethbalance, setEthBalance] = useState(0);
     const [usdbalance, setUsdBalance] = useState(0);
     const [lottery, setLottery] = useState();
-    const [price, setPrice] = useState("0.00");
-    const [lastfetch, setLastFetch] = useState("");
 
     const classes = useStyles();
     const MINUTE_MS = 30000;
@@ -43,7 +43,7 @@ export default function Balance(){
         setLottery(lottery);
 
         const ethbalance = await fetchCurrentBalance();
-        setEthBalance(ethbalance);
+        setEthBalance(ethers.utils.formatEther(ethbalance));
 
         addLotteryContractListner();
 
@@ -62,9 +62,6 @@ export default function Balance(){
         fetchPrice();
         const interval = setInterval(fetchPrice, MINUTE_MS);
 
-        console.log(ethbalance);
-        console.log(typeof ethbalance);
-
         return () => clearInterval(interval);
 
       }, []);
@@ -74,7 +71,7 @@ export default function Balance(){
         lottery.on("BuyTicket", async (author, value, event) => {
             console.log(event);
             const ethbalance = await fetchCurrentBalance();
-            setEthBalance(ethbalance);
+            setEthBalance(ethers.utils.formatEther(ethbalance));
         })
     }
 
@@ -92,25 +89,42 @@ export default function Balance(){
     }    
 
     return(
-        <Container maxWidth="lg" className={classes.balanceContainer}>
-            <Typography align="center" variant="h2"> Lottery </Typography>
-            <div>
-                <Typography 
-                    align="center"
-                    variant="h6"
-                    className={classes.balanceText}
-                > 
-                    {ethers.utils.formatEther(ethbalance)}
-                </Typography>
+        <div className="buy_box_container">
+            <div className="buy_box">
+                <div className="buy_box_top_bar">
+                    <div className="buy_box_top_bar_content">
+                        <h2 className="buy_box_top_bar_content_left">
+                            Next Draw :
+                        </h2>
+                        <div className="buy_box_top_bar_content_right">
+                            #97 | Draw: 20 Aug 2021, 07:00
+                        </div>
+                    </div>
+                </div>
+                <div className="buy_box_main_box">
+                    <div className="buy_box_main_box_content">
+                        <div className="Prize-Pot">
+                            <div className="Prize-Pot-text-container">
+                                <h2 className="Prize-Pot-text">
+                                    Prize Pot :
+                                </h2>
+                            </div>
 
-                <Typography
-                    align="center"
-                    variant="h6"
-                    className={classes.balanceText}
-                > 
-                    ${usdbalance.toString()}
-                </Typography>
+                            <div className="Prize-Pot-balance">
+                                <div className="Prize-Pot-balance-usd">
+                                    <span>{"$"+Math.round(usdbalance)}</span>
+                                </div>
+                                <div className="Prize-Pot-balance-ether">
+                                    <span>{ethbalance + " ETH"}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="Buy-Button-Box">
+                            <EnterButtonV2></EnterButtonV2>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </Container>
+        </div>
     );
 }

@@ -9,9 +9,6 @@ import {
 
 const useStyles = makeStyles({
   root: {
-    flexGrow: 1,
-  },
-  walletButton: {
     padding: "7px 16px",
     backgroundColor: "white",
     float: "right",
@@ -20,7 +17,7 @@ const useStyles = makeStyles({
     color: "#254cdd",
     marginTop:" 0px",
     '&:hover': {
-      background: "rgba(37,76,221,0.1)",
+      background: "rgba(37,76,221,0.5)",
     },
   }
 
@@ -78,7 +75,7 @@ const ConnectButton = () => {
 
 
   return (
-    <Button className={classes.walletButton} onClick={connectWalletPressed}>
+    <Button classes={{root: classes.root}} onClick={connectWalletPressed}>
       {walletAddress.length > 0 ? (
           "Connected: " +
           String(walletAddress).substring(0, 6) +

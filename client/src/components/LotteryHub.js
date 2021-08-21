@@ -2,6 +2,8 @@ import { Button } from "@material-ui/core";
 import React from "react";
 import { useEffect, useState } from "react";
 import loadContract from "../utils/loadContract";
+import { ethers } from 'ethers'
+import { toUtf8CodePoints } from "ethers/lib/utils";
 
 export default function LotteryHub(){
 
@@ -10,11 +12,22 @@ export default function LotteryHub(){
     });
 
     const [listitems, setListItems] = useState([]);
+    const [provider, setProvider] = useState();
     const [loading, setLoading] = useState();
+    const [lottery, setLottery] = useState();
+    const [numTickets, setNumTickets] = useState();
 
     useEffect( async () => {
 
         const lottery = await loadContract("dev", "Lottery");
+        setLottery(lottery);
+
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        setProvider(provider);
+
+        const numTickets = await lottery.getNumberOfTickets();
+        setNumTickets(numTickets.toNumber());
+
         const filter = lottery.filters.LotteryClose(null, null);
 
         const events = await lottery.queryFilter(filter);
@@ -34,21 +47,39 @@ export default function LotteryHub(){
             <div>
                 <div>
                     <li key={item.lotteryId}>
-                        {
-                        item.winningNumbers.map((e) =>
-                            e.toString()+", ")
-                        }
+                        <div>
+                            {
+                                item.winningNumbers.map((e) =>
+                                    e.toString()+", ")
+                            }
+                        </div>
+                        <div>
+                                {numTickets.toNumber()}
+                        </div>
                     </li>
                 </div>
                 <div>
-                    <Button> Claim Prize </Button>
+                    <Button onClick={() => handleClaimPrize(item.lotteryId)}> Claim Prize </Button>
                 </div>
             </div>
         );
         setListItems(listitems);
-        
+
         addLotteryContractListner();
+
+
+        
+
     }, []);
+
+    const handleClaimPrize = async (lotteryId) => {
+        const lottery = await loadContract("dev", "Lottery");
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const lottery_rw = lottery.connect(signer);
+        const tx = await lottery_rw.claimPrize(lotteryId);
+        console.log(tx);
+    };
 
     async function addLotteryContractListner(){
         const lottery = await loadContract("dev", "Lottery");
@@ -60,31 +91,41 @@ export default function LotteryHub(){
                     return e.toNumber()
                 }),
             };
+
             const lotteryIdArray = state.allLotteriesWinningNumbers.map(e =>{
                 return e.lotteryId
             });
-            console.log(lotteryIdArray);
+
             if (!lotteryIdArray.includes(lotteryobj.lotteryId)){
                     state.allLotteriesWinningNumbers.push(lotteryobj);
                 };
-            
+
             const listitems = state.allLotteriesWinningNumbers.map((item) =>
                 <div>
                     <div>
                         <li key={item.lotteryId}>
-                            {
-                            item.winningNumbers.map((e) =>
-                                e.toString()+", ")
-                            }
+                            <div>
+                                {
+                                item.winningNumbers.map((e) =>
+                                    e.toString()+", ")
+                                }
+                            </div>
+                            <div>
+                                {numTickets.toNumber()}
+                            </div>
                         </li>
                     </div>
                     <div>
-                        <Button> Claim Prize </Button>
+                        <Button onClick={handleClaimPrize(item.lotteryId)}> Claim Prize </Button>
                     </div>
                 </div>
             );
-
             setListItems(listitems);
+        })
+        lottery.on("BuyTicket", async (buyer, value ,event) => {
+            const numTickets = await lottery.getNumberOfTickets();
+            setNumTickets(numTickets.toNumber());
+
         })
     }
 
@@ -93,9 +134,13 @@ export default function LotteryHub(){
             <div>
                 <ol>
                     <div>
-                        {listitems}
+                        <div>
+                            {listitems}
+                        </div>
                     </div>
+
                 </ol>
+
             </div>
             <div>
 
