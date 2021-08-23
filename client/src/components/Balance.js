@@ -32,6 +32,9 @@ export default function Balance(){
     const [ethbalance, setEthBalance] = useState(0);
     const [usdbalance, setUsdBalance] = useState(0);
     const [lottery, setLottery] = useState();
+    const [drawTime, setDrawTime] = useState();
+    const [lotteryId, setLotteryId] = useState(0);
+    const [lotteryInfo, setLotteryInfo] = useState();
 
     const classes = useStyles();
     const MINUTE_MS = 30000;
@@ -44,6 +47,17 @@ export default function Balance(){
 
         const ethbalance = await fetchCurrentBalance();
         setEthBalance(ethers.utils.formatEther(ethbalance));
+
+        const lotteryId = await lottery.lottoId();
+        setLotteryId(lotteryId.toNumber());
+
+        const lotteryInfo = await lottery.getLotteryInfo(lotteryId);
+        setLotteryInfo(lotteryInfo);
+
+        const unixTime = lotteryInfo[5];
+        const unixTimeDateObj = new Date(unixTime.toNumber() * 1000);
+        const unixTimeString = unixTimeDateObj.toUTCString(); 
+        setDrawTime(unixTimeString);
 
         addLotteryContractListner();
 
@@ -73,6 +87,19 @@ export default function Balance(){
             const ethbalance = await fetchCurrentBalance();
             setEthBalance(ethers.utils.formatEther(ethbalance));
         })
+
+        lottery.on("LotteryOpen", async (lotteryId, event) => {
+
+            setLotteryId(lotteryId.toNumber());
+
+            lotteryInfo = await lottery.getLotteryInfo(lotteryId);
+            setLotteryInfo(lotteryInfo);
+
+            const unixTime = lotteryInfo[5];
+            const unixTimeDateObj = new Date(unixTime.toNumber() * 1000);
+            const unixTimeString = unixTimeDateObj.toUTCString(); 
+            setDrawTime(unixTimeString);
+        })
     }
 
     async function fetchCurrentBalance() {
@@ -97,7 +124,7 @@ export default function Balance(){
                             Next Draw :
                         </h2>
                         <div className="buy_box_top_bar_content_right">
-                            #97 | Draw: 20 Aug 2021, 07:00
+                            #{lotteryId} | Draw: {drawTime}
                         </div>
                     </div>
                 </div>

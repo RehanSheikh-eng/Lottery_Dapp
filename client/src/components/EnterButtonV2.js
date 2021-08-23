@@ -6,9 +6,16 @@ import { ethers } from 'ethers'
 import {
     getCurrentWalletConnected,
   } from "../utils/interact";
-import "./EnterButtonV2.css"
-import ball from "../tennis-ball.svg"
+import "./EnterButtonV2.css";
+import ball from "../tennis-ball.svg";
 import { makeStyles } from '@material-ui/core/styles';
+import Snackbar from '@material-ui/core/Snackbar';
+import MuiAlert from '@material-ui/lab/Alert';
+import CircularProgress from '@material-ui/core/CircularProgress';
+
+function Alert(props) {
+    return <MuiAlert elevation={6} variant="filled" {...props} />;
+  }
 
 const useStyles = makeStyles({
     root: {
@@ -57,6 +64,8 @@ export default function EnterButtonV2() {
     const [numberOptions, setNumberOptions] = useState([]);
     const [rotation, setRotation] = useState([]);
     const [hueRotate, setHueRotate] = useState([]);
+    const [successSnackOpen, setSuccessSnackOpen] = useState(false);
+    const [loading, setLoading] = useState(false);
 
 
 
@@ -83,13 +92,17 @@ export default function EnterButtonV2() {
         
         const lotteryId = await lottery.lottoId();
         setLotteryId(lotteryId);
+        console.log(`Lottery ID: ${lotteryId}`);
 
         const lotteryInfo = await lottery.getLotteryInfo(lotteryId);
+        console.log(lotteryInfo);
         setLotteryInfo(lotteryInfo);
 
         if (lotteryInfo[2] === 1){
+            console.log("setting disabled false");
             setDisabled(false);
         } else {
+            console.log("setting disabled true");
             setDisabled(true);
         }
 
@@ -139,19 +152,30 @@ export default function EnterButtonV2() {
         const lottery_rw = lottery.connect(signer);
 
         const numbers = Object.values(state);
+        setLoading(true);
         const tx = await lottery_rw.enter(numbers.map(x=>+x), {value: ethers.utils.parseEther("0.1")});
+        setLoading(false);
 
         const stateobj = {};
         for (let i = 0; i < lotterySize; i++) {
             const nameId = `num${i+1}`;
             stateobj[nameId] = "0";
         };
-        
+
         setState(stateobj);
         Array.from(document.querySelectorAll("select")).forEach(
             select => (select.value = "0")
           );
+        
+        setSuccessSnackOpen(true);
+    };
 
+    const handleClose = (event, reason) => {
+        if (reason === 'clickaway') {
+          return;
+        }
+    
+        setSuccessSnackOpen(false);
     };
 
     async function addLotteryContractListner(){
@@ -224,6 +248,18 @@ export default function EnterButtonV2() {
                 >
                     BUY TICKET
                 </Button>
+                <div style={{marginLeft: 10}}>
+                    {
+                        loading ? <CircularProgress /> : null
+                    }
+                </div>
+            </div>
+            <div>
+                <Snackbar open={successSnackOpen} autoHideDuration={3000} onClose={handleClose}>
+                    <Alert onClose={handleClose} severity="success">
+                        Success! View your tickets below
+                    </Alert>
+                </Snackbar>
             </div>
         </div>
     );
