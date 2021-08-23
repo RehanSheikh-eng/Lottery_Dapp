@@ -162,10 +162,12 @@ def test_valid_enter_lottery_open_local(start_lottery_open):
 
     # Act
     lottery.setCurrentTime(ORIGIN_TIME+10, {"from": get_account()})
+    lotteryId = lottery.lottoId()
     for i in range(len(accounts)):
         randnums = np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
+        
         tx1 = lottery.enter(randnums.tolist(), {"from": get_account(i), "value": FEE})
-        tx2 = lottery.getTicketNumber.transact(0, {"from": get_account(i)})
+        tx2 = lottery.getTicketNumber.transact(lotteryId, 0, {"from": get_account(i)})
         nums = tx2.return_value
         print(f"Account: {get_account(i).address}\nNumpy Numbers: {randnums.tolist()}\nNumbers stored in contract:{nums}")
 
@@ -183,10 +185,11 @@ def test_valid_enter_lottery_notstarted_local(start_lottery_notstarted):
 
     # Act
     lottery.setCurrentTime(ORIGIN_TIME+10, {"from": get_account()})
+    lotteryId = lottery.lottoId()
     for i in range(len(accounts)):
         randnums = np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
         tx1 = lottery.enter(randnums.tolist(), {"from": get_account(i), "value": FEE})
-        tx2 = lottery.getTicketNumber.transact(0, {"from": get_account(i)})
+        tx2 = lottery.getTicketNumber.transact(lotteryId, 0, {"from": get_account(i)})
         nums = tx2.return_value
         print(f"Account: {get_account(i).address}\nNumpy Numbers: {randnums.tolist()}\nNumbers stored in contract:{nums}")
 

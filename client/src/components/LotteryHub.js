@@ -210,43 +210,56 @@ export default function LotteryHub(){
                         </div>
                     </div>
                 </div>
-                <div className="hub-winning-numbers-container">
-                    <div style={{display: "flex", flexDirection: "column"}}>
-                        <div style={{textAlign: "center", marginBottom: 10}}>
-                           <h2 className="hub-winning-numbers-text">
-                                Winning Numbers :
-                            </h2> 
+                {
+                    activeButton === "All History" ? 
+                    
+                        <div className="hub-winning-numbers-container">
+                            <div style={{display: "flex", flexDirection: "column"}}>
+                                <div style={{textAlign: "center", marginBottom: 10}}>
+                                <h2 className="hub-winning-numbers-text">
+                                        Winning Numbers :
+                                    </h2> 
+                                </div>
+                                <div style={{display: "flex", justifyContent:"space-evenly"}}>
+                                    {
+                                        winningNumbers.map((e, key) => 
+                                            <div className="circle">
+                                                <img 
+                                                    src={ball}
+                                                    width="80px"
+                                                    height="80px" 
+                                                    style={{
+                                                        position: "absolute",
+                                                        zIndex: 2,
+                                                        filter: `hue-rotate(${hueRotate[key]}deg)`,
+                                                    }}
+                                                    className="lottery-img"
+                                                />
+                                                <h2 
+                                                    className="hub-winnning-numbers-inline-text"
+                                                    style={{
+                                                        transform: `rotate(${rotation[key]}deg)`,
+                                                    }}>
+                                                        {e}
+                                                </h2>
+                                            </div>)
+                                    }
+
+                                </div>
+
                         </div>
-                        <div style={{display: "flex", justifyContent:"space-evenly"}}>
-                            {
-                                winningNumbers.map((e, key) => 
-                                    <div className="circle">
-                                        <img 
-                                            src={ball}
-                                            width="80px"
-                                            height="80px" 
-                                            style={{
-                                                position: "absolute",
-                                                zIndex: 2,
-                                                filter: `hue-rotate(${hueRotate[key]}deg)`,
-                                            }}
-                                            className="lottery-img"
-                                        />
-                                        <h2 
-                                            className="hub-winnning-numbers-inline-text"
-                                            style={{
-                                                transform: `rotate(${rotation[key]}deg)`,
-                                            }}>
-                                                {e}
-                                        </h2>
-                                    </div>)
-
-                            }
-
-                        </div>
-
                     </div>
-                </div>
+                    :
+                    <div className="hub-winning-numbers-container">
+                        <div style={{display: "flex", flexDirection: "column"}}>
+
+                        </div>
+                    </div>
+                }
+
+
+
+
             
             </div>
         </div>

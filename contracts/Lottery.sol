@@ -50,7 +50,7 @@ contract Lottery is Ownable, Testable {
     //-------------------------------------------------------------------------
 
     // Holds the tickets entered by a specific address
-    mapping (address => Ticket[]) public playerTickets;
+    mapping (address => mapping (uint => Ticket[])) public playerTickets;
 
     // Holds the chainlink VRF request ID to Lottery ID
     mapping (bytes32 => uint) internal requestToLotteryId;
@@ -271,7 +271,7 @@ contract Lottery is Ownable, Testable {
         ); // dev: Lottery is not Open therfore cannot enter 
 
         // Adds Ticket struct to mapping with players address as key
-        playerTickets[msg.sender].push(Ticket(lottoId, _lottoNumbers, false));
+        playerTickets[msg.sender][lottoId].push(Ticket(lottoId, _lottoNumbers, false));
 
         emit BuyTicket(msg.sender, msg.value);
 
@@ -288,15 +288,15 @@ contract Lottery is Ownable, Testable {
         ); // dev: Wining Numbers have not been drawn yet
 
         // Iterate through all tickets belonging to the player
-        for(uint i = 0; i < playerTickets[msg.sender].length; i++){
+        for(uint i = 0; i < playerTickets[msg.sender][_lotteryId].length; i++){
 
             // Ensure ticket has not be claimed 
             if (
-                playerTickets[msg.sender][i].lottoId == _lotteryId &&
-                playerTickets[msg.sender][i].claimed == false) {
+                playerTickets[msg.sender][_lotteryId][i].lottoId == _lotteryId &&
+                playerTickets[msg.sender][_lotteryId][i].claimed == false) {
 
                 // Check how many numbers match (correct number not position)
-                uint8 matchingNumbers = getMatchingNumbers(playerTickets[msg.sender][i].numbers,
+                uint8 matchingNumbers = getMatchingNumbers(playerTickets[msg.sender][_lotteryId][i].numbers,
                                                         allLotteries[_lotteryId].winningNumbers);
 
                 // Calculate prize
@@ -309,7 +309,7 @@ contract Lottery is Ownable, Testable {
                 }
                 
                 // Set claimed flag of ticket to true
-                playerTickets[msg.sender][i].claimed = true;
+                playerTickets[msg.sender][lottoId][i].claimed = true;
             }
         }
     }
@@ -318,14 +318,14 @@ contract Lottery is Ownable, Testable {
     // VIEW FUNCTIONS
     //-------------------------------------------------------------------------
 
-    function getTicketNumber(uint _index) public view returns(uint[] memory){
+    function getTicketNumber(uint _lotteryId, uint _index) public view returns(uint[] memory){
 
-        return playerTickets[msg.sender][_index].numbers;
+        return playerTickets[msg.sender][_lotteryId][_index].numbers;
     }
 
-    function getNumberOfTickets() public view returns(uint){
+    function getNumberOfTickets(uint _lotteryId) public view returns(uint){
 
-        return playerTickets[msg.sender].length;
+        return playerTickets[msg.sender][_lotteryId].length;
     }
 
     function getLotteryInfo(uint _lotteryId) public view returns (LotteryInfo memory){
