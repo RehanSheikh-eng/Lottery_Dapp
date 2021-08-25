@@ -29,6 +29,10 @@ export default function LotteryHub(){
     const [rotation, setRotation] = useState([]);
     const [hueRotate, setHueRotate] = useState([]);
     const [lotterySize, setLotterySize] = useState();
+    const [numberOfTickets, setNumberOfTickets] = useState();
+    const [tickets, setTickets] = useState();
+    const [disabledForward, setDisabledForward] = useState();
+    const [disabledBackwards, setDisabledBackwards] = useState();
 
     useEffect( async () => {
 
@@ -44,8 +48,14 @@ export default function LotteryHub(){
         const currentLotteryId = await lottery.lottoId();
         setCurrentLotteryId(currentLotteryId.toNumber());
 
-        setSearchLotteryId(currentLotteryId.toNumber() - 1);
+        const lotteryInfo = await lottery.getLotteryInfo(currentLotteryId);
+        lotteryInfo[2] === 3 ? 
+            setSearchLotteryId(currentLotteryId.toNumber())
+            : 
+            setSearchLotteryId(currentLotteryId.toNumber() - 1);
 
+        setDisabledForward(true);
+        
         const rotation = [];
         for (let i = 0; i < lotterySize.toNumber(); i++) {
             let rot = Math.floor(Math.random()*15 + 7);
@@ -75,12 +85,42 @@ export default function LotteryHub(){
             else{  
                 const lottery = await loadContract("dev", "Lottery");
                 const lotteryInfo = await lottery.getLotteryInfo(searchLotteryId);
+
                 const unixTime = lotteryInfo[5];
                 const unixTimeDateObj = new Date(unixTime.toNumber() * 1000);
                 const unixTimeString = unixTimeDateObj.toUTCString();
                 setDrawTime(unixTimeString);
+
                 const winningNumbers = lotteryInfo[1];
                 setWinningNumbers(winningNumbers.map((e)=>e.toNumber()))
+
+                const numberOfTickets = await lottery.getNumberOfTickets(searchLotteryId);
+                setNumberOfTickets(numberOfTickets.toNumber());
+
+                const ticketsObj = {};
+                for (let i = 0; i < numberOfTickets; i++){
+
+                    const numbers = await lottery.getTicketNumber(searchLotteryId, i);
+                    ticketsObj[i] = numbers.map(e => e.toNumber());
+                };
+                setTickets(ticketsObj);
+
+                if (searchLotteryId === 1){
+                    setDisabledBackwards(true);
+                } else{
+                    setDisabledBackwards(false);
+                }
+
+                lotteryInfo[2] === 3 ?
+                    searchLotteryId < currentLotteryId ? 
+                        setDisabledForward(false)
+                        :
+                        setDisabledForward(true)
+                    :
+                    searchLotteryId < currentLotteryId - 1 ?
+                        setDisabledForward(false)
+                        :
+                        setDisabledForward(true);
             }
 
         };
@@ -102,6 +142,7 @@ export default function LotteryHub(){
     const handleClick = () => {
         if (activeButton === "All History"){
             setActiveButton("Your History");
+            setSearchLotteryId(currentLotteryId);
         }
         else{
             setActiveButton("All History");
@@ -113,11 +154,15 @@ export default function LotteryHub(){
     };
 
     const handleForward = async () => {
-        setSearchLotteryId(searchLotteryId + 1);
+        setSearchLotteryId(searchLotteryId + 1)
     };
 
     const handleFastForward = async () => {
-        setSearchLotteryId(currentLotteryId - 1);
+        const lotteryInfo = await lottery.getLotteryInfo(currentLotteryId);
+        lotteryInfo[2] === 3 ? 
+            setSearchLotteryId(currentLotteryId)
+            : 
+            setSearchLotteryId(currentLotteryId - 1);
     };
 
     const handleChange = async (e) => {
@@ -187,18 +232,30 @@ export default function LotteryHub(){
                         </div>
                         <div style={{display: "flex", alignItems: "center",}}>
                             <div className="hub-navigation-button-icon">
-                                <button onClick={handleBack}>
+                                <button 
+                                    onClick={handleBack}
+                                    className="lottery-hub-button"
+                                    disabled={disabledBackwards}
+                                >
                                     <ArrowBackIcon></ArrowBackIcon>
                                 </button>
 
                             </div>
                             <div className="hub-navigation-button-icon">
-                                <button onClick={handleForward}>
+                                <button 
+                                    onClick={handleForward}
+                                    disabled={disabledForward}
+                                    className="lottery-hub-button"
+                                >
                                     <ArrowForwardIcon></ArrowForwardIcon>
                                 </button>
                             </div>
                             <div className="hub-navigation-button-icon">
-                                <button onClick={handleFastForward}>
+                                <button 
+                                    onClick={handleFastForward}
+                                    disabled={disabledForward}
+                                    className="lottery-hub-button"
+                                >
                                     <FastForwardIcon></FastForwardIcon>
                                 </button>
                             </div>
@@ -216,7 +273,7 @@ export default function LotteryHub(){
                         <div className="hub-winning-numbers-container">
                             <div style={{display: "flex", flexDirection: "column"}}>
                                 <div style={{textAlign: "center", marginBottom: 10}}>
-                                <h2 className="hub-winning-numbers-text">
+                                    <h2 className="hub-winning-numbers-text">
                                         Winning Numbers :
                                     </h2> 
                                 </div>
@@ -251,16 +308,48 @@ export default function LotteryHub(){
                     </div>
                     :
                     <div className="hub-winning-numbers-container">
-                        <div style={{display: "flex", flexDirection: "column"}}>
-
+                        <div style={{display: "flex",}}>
+                            {
+                                Object.values(tickets).map((ticket, key) =>
+                                    <div>
+                                        <div style={{textAlign: "center", marginBottom: 10}}>
+                                            <h2>
+                                                # {key+1}
+                                            </h2>
+                                        </div>
+                                        <div style={{display: "flex", justifyContent:"space-evenly"}}>
+                                            {
+                                                ticket.map((e, i) => 
+                                                    <div className="circle">
+                                                        <img 
+                                                            src={ball}
+                                                            width="80px"
+                                                            height="80px" 
+                                                            style={{
+                                                                position: "absolute",
+                                                                zIndex: 2,
+                                                                filter: `hue-rotate(${hueRotate[i]}deg)`,
+                                                            }}
+                                                            className="lottery-img"
+                                                        />
+                                                        <h2 
+                                                            className="hub-winnning-numbers-inline-text"
+                                                            style={{
+                                                                transform: `rotate(${rotation[i]}deg)`,
+                                                            }}
+                                                        >
+                                                            {e}
+                                                        </h2>  
+                                                    </div>
+                                                )
+                                            }
+                                        </div>
+                                    </div>                                
+                                )
+                            }
                         </div>
                     </div>
                 }
-
-
-
-
-            
             </div>
         </div>
     );

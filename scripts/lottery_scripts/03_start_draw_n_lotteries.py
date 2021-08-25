@@ -1,4 +1,5 @@
 from brownie import Lottery, Timer, VRFConsumer, config, network
+import numpy as np
 from scripts.helpful_scripts import (
     get_account,
     get_verify_status,
@@ -14,7 +15,7 @@ from ...tests.conftest import (
     VALID_PRIZE_DISTRIBUTION
 )
 
-n = 5
+n = 2
 
 def start_draw_n_lotteries(n):
     account = get_account()
@@ -34,6 +35,10 @@ def start_draw_n_lotteries(n):
                 end_time,
                 VALID_PRIZE_DISTRIBUTION,
                 {"from": account})
+
+        for i in range(10):
+            randnums= np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
+            lottery.enter(randnums.tolist(), {"from": get_account(i), "value": FEE})
 
         lotto_ID = lottery.lottoId({"from": account})
         lottery.setCurrentTime(end_time + 2, {"from": account})
