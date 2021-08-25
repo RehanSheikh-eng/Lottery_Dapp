@@ -58,6 +58,9 @@ contract Lottery is Ownable, Testable {
     // Holds the Lottery ID to Info 
     mapping (uint => LotteryInfo) internal allLotteries;
 
+    // Holds claim information about each player
+    mapping(address => mapping(uint => bool)) internal lotteryHasBeenClaimed;
+
     //-------------------------------------------------------------------------
     // MODIFIERS
     //-------------------------------------------------------------------------
@@ -309,9 +312,13 @@ contract Lottery is Ownable, Testable {
                 }
                 
                 // Set claimed flag of ticket to true
-                playerTickets[msg.sender][lottoId][i].claimed = true;
+                playerTickets[msg.sender][_lotteryId][i].claimed = true;
             }
         }
+
+        // Set claim flag of player to true
+        lotteryHasBeenClaimed[msg.sender][_lotteryId] = true;
+
     }
 
     //-------------------------------------------------------------------------
@@ -331,6 +338,11 @@ contract Lottery is Ownable, Testable {
     function getLotteryInfo(uint _lotteryId) public view returns (LotteryInfo memory){
 
         return (allLotteries[_lotteryId]);
+    }
+
+    function getClaimStatus(uint _lotteryId) public view returns (bool){
+        
+        return lotteryHasBeenClaimed[msg.sender][_lotteryId]; 
     }
 
     //-------------------------------------------------------------------------
