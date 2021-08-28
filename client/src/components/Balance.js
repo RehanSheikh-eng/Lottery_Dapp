@@ -92,7 +92,7 @@ export default function Balance(){
 
             setLotteryId(lotteryId.toNumber());
 
-            lotteryInfo = await lottery.getLotteryInfo(lotteryId);
+            const lotteryInfo = await lottery.getLotteryInfo(lotteryId);
             setLotteryInfo(lotteryInfo);
 
             const unixTime = lotteryInfo[5];

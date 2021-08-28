@@ -12,6 +12,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import Snackbar from '@material-ui/core/Snackbar';
 import MuiAlert from '@material-ui/lab/Alert';
 import CircularProgress from '@material-ui/core/CircularProgress';
+import ReactDOM from "react";
 
 function Alert(props) {
     return <MuiAlert elevation={6} variant="filled" {...props} />;
@@ -64,7 +65,6 @@ export default function EnterButtonV2() {
     const [numberOptions, setNumberOptions] = useState([]);
     const [rotation, setRotation] = useState([]);
     const [hueRotate, setHueRotate] = useState([]);
-    const [successSnackOpen, setSuccessSnackOpen] = useState(false);
     const [loading, setLoading] = useState(false);
 
 
@@ -167,16 +167,8 @@ export default function EnterButtonV2() {
             select => (select.value = "0")
           );
         
-        setSuccessSnackOpen(true);
     };
 
-    const handleClose = (event, reason) => {
-        if (reason === 'clickaway') {
-          return;
-        }
-    
-        setSuccessSnackOpen(false);
-    };
 
     async function addLotteryContractListner(){
         const lottery = await loadContract("dev", "Lottery");
@@ -190,7 +182,6 @@ export default function EnterButtonV2() {
             setDisabled(true);
         })
     }
-
     return(
         <div>
             <div>
@@ -253,13 +244,6 @@ export default function EnterButtonV2() {
                         loading ? <CircularProgress /> : null
                     }
                 </div>
-            </div>
-            <div>
-                <Snackbar open={successSnackOpen} autoHideDuration={3000} onClose={handleClose}>
-                    <Alert onClose={handleClose} severity="success">
-                        Success! View your tickets below
-                    </Alert>
-                </Snackbar>
             </div>
         </div>
     );

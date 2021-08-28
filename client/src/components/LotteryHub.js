@@ -9,15 +9,12 @@ import ArrowBackIcon from '@material-ui/icons/ArrowBack';
 import ArrowForwardIcon from '@material-ui/icons/ArrowForward';
 import FastForwardIcon from '@material-ui/icons/FastForward';
 import ball from "../tennis-ball.svg";
+import {
+    getCurrentWalletConnected,
+  } from "../utils/interact";
 
 export default function LotteryHub(){
 
-    const [state, setState] = useState({
-        allLotteriesWinningNumbers: [],
-    });
-
-    const [provider, setProvider] = useState();
-    const [loading, setLoading] = useState();
     const [lottery, setLottery] = useState();
     const [numTickets, setNumTickets] = useState();
     const [activeButton, setActiveButton] = useState("All History");
@@ -33,6 +30,7 @@ export default function LotteryHub(){
     const [tickets, setTickets] = useState();
     const [disabledForward, setDisabledForward] = useState();
     const [disabledBackwards, setDisabledBackwards] = useState();
+    const [claimStatus, setClaimStatus] = useState();
 
     useEffect( async () => {
 
@@ -40,7 +38,6 @@ export default function LotteryHub(){
         setLottery(lottery);
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
-        setProvider(provider);
 
         const lotterySize = await lottery.sizeOfLottery();
         setLotterySize(lotterySize.toNumber());
@@ -82,9 +79,14 @@ export default function LotteryHub(){
             if (searchLotteryId === undefined){
                 return
             }
-            else{  
+            else{
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();  
                 const lottery = await loadContract("dev", "Lottery");
+                const lottery_rw = lottery.connect(signer);
                 const lotteryInfo = await lottery.getLotteryInfo(searchLotteryId);
+                const claimStatus = await lottery_rw.getClaimStatus(searchLotteryId);
+                setClaimStatus(claimStatus);
 
                 const unixTime = lotteryInfo[5];
                 const unixTimeDateObj = new Date(unixTime.toNumber() * 1000);
@@ -94,20 +96,27 @@ export default function LotteryHub(){
                 const winningNumbers = lotteryInfo[1];
                 setWinningNumbers(winningNumbers.map((e)=>e.toNumber()))
 
-                const numberOfTickets = await lottery.getNumberOfTickets(searchLotteryId);
+                const numberOfTickets = await lottery_rw.getNumberOfTickets(searchLotteryId);
+                console.log(numberOfTickets.toNumber());
                 setNumberOfTickets(numberOfTickets.toNumber());
 
                 const ticketsObj = {};
                 for (let i = 0; i < numberOfTickets; i++){
 
-                    const numbers = await lottery.getTicketNumber(searchLotteryId, i);
+                    const numbers = await lottery_rw.getTicketNumber(searchLotteryId, i);
                     ticketsObj[i] = numbers.map(e => e.toNumber());
                 };
                 setTickets(ticketsObj);
 
                 if (searchLotteryId === 1){
                     setDisabledBackwards(true);
-                } else{
+                }
+                
+                else if (searchLotteryId === 0){
+                    setSearchLotteryId(1);
+                }
+
+                else{
                     setDisabledBackwards(false);
                 }
 
@@ -131,11 +140,11 @@ export default function LotteryHub(){
     }, [searchLotteryId]);
 
     const handleClaimPrize = async (lotteryId) => {
-        const lottery = await loadContract("dev", "Lottery");
         const provider = new ethers.providers.Web3Provider(window.ethereum);
         const signer = provider.getSigner();
         const lottery_rw = lottery.connect(signer);
-        const tx = await lottery_rw.claimPrize(lotteryId);
+        console.log(lotteryId);
+        const tx = lottery_rw.claimPrize(lotteryId);
         console.log(tx);
     };
 
@@ -178,17 +187,28 @@ export default function LotteryHub(){
         const lottery = await loadContract("dev", "Lottery");
         lottery.on("LotteryClose", async (lotteryId, winningNumbers, event) => {
             console.log(event);
-            const lotteryobj = {
-                lotteryId: lotteryId.toNumber(),
-                winningNumbers: winningNumbers.map(e =>{
-                    return e.toNumber()
-                }),
-            };
         })
         lottery.on("BuyTicket", async (buyer, value ,event) => {
-            const numTickets = await lottery.getNumberOfTickets();
-            setNumTickets(numTickets.toNumber());
 
+            if (activeButton === "Your History" && currentLotteryId === searchLotteryId){
+
+                const provider = new ethers.providers.Web3Provider(window.ethereum);
+                const signer = provider.getSigner();
+                const lottery_rw = lottery.connect(signer);  
+                const currentLotteryId = await lottery.lottoId();
+                const numberOfTickets = await lottery_rw.getNumberOfTickets(searchLotteryId);
+                setNumberOfTickets(numberOfTickets.toNumber());
+    
+                const ticketsObj = {};
+                for (let i = 0; i < numberOfTickets.toNumber(); i++){
+    
+                    const numbers = await lottery_rw.getTicketNumber(searchLotteryId, i);
+                    ticketsObj[i] = numbers.map(e => e.toNumber());
+                };
+                setTickets(ticketsObj);
+            }
+
+            
         })
     }
 
@@ -271,7 +291,7 @@ export default function LotteryHub(){
                     activeButton === "All History" ? 
                     
                         <div className="hub-winning-numbers-container">
-                            <div style={{display: "flex", flexDirection: "column"}}>
+                            <div style={{display: "flex", flexDirection: "column",}}>
                                 <div style={{textAlign: "center", marginBottom: 10}}>
                                     <h2 className="hub-winning-numbers-text">
                                         Winning Numbers :
@@ -308,7 +328,16 @@ export default function LotteryHub(){
                     </div>
                     :
                     <div className="hub-winning-numbers-container">
-                        <div style={{display: "flex",}}>
+                        <div style={{alignItems: "center", marginBottom: 10}}>
+                            <button 
+                                onClick={() => handleClaimPrize(searchLotteryId)}
+                                disabled={claimStatus}
+                                className="lottery-hub-button"
+                            >
+                                Claim Prize
+                            </button>
+                        </div>
+                        <div style={{display: "flex", flexDirection: "column"}}>
                             {
                                 Object.values(tickets).map((ticket, key) =>
                                     <div>

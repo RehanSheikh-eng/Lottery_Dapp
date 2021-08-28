@@ -15,7 +15,7 @@ from ...tests.conftest import (
     VALID_PRIZE_DISTRIBUTION
 )
 
-n = 2
+n = 10
 
 def start_draw_n_lotteries(n):
     account = get_account()
@@ -36,9 +36,9 @@ def start_draw_n_lotteries(n):
                 VALID_PRIZE_DISTRIBUTION,
                 {"from": account})
 
-        for i in range(10):
+        for j in range(10):
             randnums= np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
-            lottery.enter(randnums.tolist(), {"from": get_account(i), "value": FEE})
+            lottery.enter(randnums.tolist(), {"from": get_account(j), "value": FEE})
 
         lotto_ID = lottery.lottoId({"from": account})
         lottery.setCurrentTime(end_time + 2, {"from": account})
