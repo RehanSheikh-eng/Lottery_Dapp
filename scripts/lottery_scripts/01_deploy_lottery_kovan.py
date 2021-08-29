@@ -1,4 +1,7 @@
-from brownie import Lottery, Timer, VRFConsumer, config, network
+
+from brownie import Lottery, Timer, VRFConsumer, config, network, ZERO_ADDRESS
+from brownie.network import account
+import time
 import numpy as np
 from scripts.helpful_scripts import (
     get_account,
@@ -7,27 +10,16 @@ from scripts.helpful_scripts import (
     fund_with_link,
     LOCAL_BLOCKCHAIN_ENVIRONMENTS
 )
-from ...tests.conftest import (
-    SIZE_OF_LOTTERY,
-    MAX_VALID_NUMBER, 
-    FEE,
-    ORIGIN_TIME,
-    VALID_PRIZE_DISTRIBUTION
-)
+
+SIZE_OF_LOTTERY = 5
+MAX_VALID_NUMBER = 10
+FEE = 1_000_000_000_000_000
+
 
 def deploy_lottery():
-
     account = get_account()
     print(f"On network {network.show_active()}")
-
-    if network.show_active() in LOCAL_BLOCKCHAIN_ENVIRONMENTS:
-        timer = Timer.deploy({"from": account})
-        assert timer is not None
-        timer_address = timer.address
-
-    else:
-        timer_address = "0x0"
-
+    timer_address = ZERO_ADDRESS
     lottery = Lottery.deploy(
         SIZE_OF_LOTTERY,
         MAX_VALID_NUMBER,
@@ -52,30 +44,19 @@ def deploy_lottery():
         publish_source=get_verify_status(),
     )
 
-    fund_with_link(
+    print(f"VRFConsumer Contract Deployed at:{vrf_contract.address}")
+
+    tx = fund_with_link(
         vrf_contract,
         amount=config["networks"][network.show_active()]["fee"]
     )
+    tx.wait(1)
 
     lottery.initialize(
         vrf_contract.address,
-        {"from": get_account()})
+        {"from": get_account()}
+    )
 
-def start_and_enter_lottery():
-
-    account = get_account()
-    lottery = Lottery[-1]
-    lottery.setCurrentTime(ORIGIN_TIME, {"from": account})
-    tx = lottery.startLottery(
-            ORIGIN_TIME,
-            ORIGIN_TIME+100,
-            VALID_PRIZE_DISTRIBUTION,
-            {"from": account})
-
-    for i in range(10):
-        randnums= np.random.randint(0, MAX_VALID_NUMBER, SIZE_OF_LOTTERY)
-        lottery.enter(randnums.tolist(), {"from": get_account(i), "value": FEE})
 
 def main():
     deploy_lottery()
-    start_and_enter_lottery()
