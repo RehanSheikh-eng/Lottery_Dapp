@@ -1,0 +1,31 @@
+{
+  "files": {
+    "main.css": "/Lottery_Dapp/static/css/main.03ce8a2b.chunk.css",
+    "main.js": "/Lottery_Dapp/static/js/main.b59b893a.chunk.js",
+    "main.js.map": "/Lottery_Dapp/static/js/main.b59b893a.chunk.js.map",
+    "runtime-main.js": "/Lottery_Dapp/static/js/runtime-main.6f6baf9e.js",
+    "runtime-main.js.map": "/Lottery_Dapp/static/js/runtime-main.6f6baf9e.js.map",
+    "static/js/2.ba721803.chunk.js": "/Lottery_Dapp/static/js/2.ba721803.chunk.js",
+    "static/js/2.ba721803.chunk.js.map": "/Lottery_Dapp/static/js/2.ba721803.chunk.js.map",
+    "static/js/3.79141eeb.chunk.js": "/Lottery_Dapp/static/js/3.79141eeb.chunk.js",
+    "static/js/3.79141eeb.chunk.js.map": "/Lottery_Dapp/static/js/3.79141eeb.chunk.js.map",
+    "static/js/4.e17b7d95.chunk.js": "/Lottery_Dapp/static/js/4.e17b7d95.chunk.js",
+    "static/js/4.e17b7d95.chunk.js.map": "/Lottery_Dapp/static/js/4.e17b7d95.chunk.js.map",
+    "static/js/5.c2647709.chunk.js": "/Lottery_Dapp/static/js/5.c2647709.chunk.js",
+    "static/js/5.c2647709.chunk.js.map": "/Lottery_Dapp/static/js/5.c2647709.chunk.js.map",
+    "static/js/6.a2235ca8.chunk.js": "/Lottery_Dapp/static/js/6.a2235ca8.chunk.js",
+    "static/js/6.a2235ca8.chunk.js.map": "/Lottery_Dapp/static/js/6.a2235ca8.chunk.js.map",
+    "index.html": "/Lottery_Dapp/index.html",
+    "precache-manifest.f91984966cfdd56725756f5b91ba1170.js": "/Lottery_Dapp/precache-manifest.f91984966cfdd56725756f5b91ba1170.js",
+    "service-worker.js": "/Lottery_Dapp/service-worker.js",
+    "static/css/main.03ce8a2b.chunk.css.map": "/Lottery_Dapp/static/css/main.03ce8a2b.chunk.css.map",
+    "static/js/2.ba721803.chunk.js.LICENSE.txt": "/Lottery_Dapp/static/js/2.ba721803.chunk.js.LICENSE.txt",
+    "static/media/tennis-ball.svg": "/Lottery_Dapp/static/media/tennis-ball.32555e89.svg"
+  },
+  "entrypoints": [
+    "static/js/runtime-main.6f6baf9e.js",
+    "static/js/2.ba721803.chunk.js",
+    "static/css/main.03ce8a2b.chunk.css",
+    "static/js/main.b59b893a.chunk.js"
+  ]
+}
