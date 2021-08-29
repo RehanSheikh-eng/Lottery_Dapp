@@ -42,7 +42,7 @@ export default function Balance(){
 
     useEffect(async () => {
 
-        const lottery = await loadContract("dev", "Lottery");
+        const lottery = await loadContract("42", "Lottery");
         setLottery(lottery);
 
         const ethbalance = await fetchCurrentBalance();
@@ -79,9 +79,24 @@ export default function Balance(){
         return () => clearInterval(interval);
 
       }, []);
+    useEffect(() => {
+        function fetchPrice(){
+            fetch(URL)
+            .then(response => {
+                return response.json();
+            })
+            .then(data => {
+                console.log(typeof ethbalance);
+                console.log(data[0].current_price);
+                const usdbalance = ethbalance * (data[0].current_price);
+                setUsdBalance(usdbalance);
+            })
+        }
+        fetchPrice();
+    }, [ethbalance]);
 
     async function addLotteryContractListner(){
-        const lottery = await loadContract("dev", "Lottery");
+        const lottery = await loadContract("42", "Lottery");
         lottery.on("BuyTicket", async (author, value, event) => {
             console.log(event);
             const ethbalance = await fetchCurrentBalance();
@@ -104,7 +119,7 @@ export default function Balance(){
 
     async function fetchCurrentBalance() {
 
-        const lottery = await loadContract("dev", "Lottery");
+        const lottery = await loadContract("42", "Lottery");
           try {
             const address = lottery.address;
             const provider = new ethers.providers.Web3Provider(window.ethereum)

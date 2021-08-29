@@ -71,7 +71,7 @@ export default function EnterButtonV2() {
 
     useEffect(async () => {
 
-        const lottery = await loadContract("dev", "Lottery");
+        const lottery = await loadContract("42", "Lottery");
         setLottery(lottery);
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -153,7 +153,7 @@ export default function EnterButtonV2() {
 
         const numbers = Object.values(state);
         setLoading(true);
-        const tx = await lottery_rw.enter(numbers.map(x=>+x), {value: ethers.utils.parseEther("0.1")});
+        const tx = await lottery_rw.enter(numbers.map(x=>+x), {value: ethers.utils.parseEther("0.001")});
         setLoading(false);
 
         const stateobj = {};
@@ -171,7 +171,7 @@ export default function EnterButtonV2() {
 
 
     async function addLotteryContractListner(){
-        const lottery = await loadContract("dev", "Lottery");
+        const lottery = await loadContract("42", "Lottery");
         lottery.on("LotteryOpen", async (lotteryId, event) => {
             console.log(event);
             setDisabled(false);

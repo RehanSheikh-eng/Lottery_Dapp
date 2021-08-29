@@ -34,7 +34,7 @@ export default function LotteryHub(){
 
     useEffect( async () => {
 
-        const lottery = await loadContract("dev", "Lottery");
+        const lottery = await loadContract("42", "Lottery");
         setLottery(lottery);
 
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -82,9 +82,10 @@ export default function LotteryHub(){
             else{
                 const provider = new ethers.providers.Web3Provider(window.ethereum);
                 const signer = provider.getSigner();  
-                const lottery = await loadContract("dev", "Lottery");
+                const lottery = await loadContract("42", "Lottery");
                 const lottery_rw = lottery.connect(signer);
                 const lotteryInfo = await lottery.getLotteryInfo(searchLotteryId);
+                const currentLotteryInfo = await lottery.getLotteryInfo(currentLotteryId);
                 const claimStatus = await lottery_rw.getClaimStatus(searchLotteryId);
                 setClaimStatus(claimStatus);
 
@@ -120,7 +121,7 @@ export default function LotteryHub(){
                     setDisabledBackwards(false);
                 }
 
-                lotteryInfo[2] === 3 ?
+                currentLotteryInfo[2] === 3 ?
                     searchLotteryId < currentLotteryId ? 
                         setDisabledForward(false)
                         :
@@ -184,7 +185,7 @@ export default function LotteryHub(){
     };
 
     async function addLotteryContractListner(){
-        const lottery = await loadContract("dev", "Lottery");
+        const lottery = await loadContract("42", "Lottery");
         lottery.on("LotteryClose", async (lotteryId, winningNumbers, event) => {
             console.log(event);
         })
