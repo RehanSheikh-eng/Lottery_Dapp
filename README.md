@@ -17,6 +17,12 @@ With the newly installed MetaMask extension click the icon in your browser. This
 
 After following the instructions you should see a screen with information about your newly created Ethereum account.
 
+# Using the Application
+
+Follow the Link to enter into the lottery: https://rehansheikh-eng.github.io/Lottery_Dapp/
+
+
+
 > NOTE: This has been recently updated for better compatibility with local blockchains. Check out the scripts to learn more.
 
 
