@@ -11,7 +11,7 @@ from scripts.helpful_scripts import (
 )
 
 VALID_PRIZE_DISTRIBUTION = [0, 0, 0, 0, 100]
-DURATION = 300
+DURATION = 2.628e+6
 
 
 def start_lottery(duration=DURATION):

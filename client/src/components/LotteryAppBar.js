@@ -11,6 +11,7 @@ const useStyles = makeStyles({
       },
       title: {
         flexGrow: 1,
+        fontSize: 26
       },
 });
 
@@ -19,11 +20,11 @@ export default function LotteryAppBar() {
     const classes = useStyles()
 
     return(
-        <AppBar position="flex">
+        <AppBar style={{ background: 'pink' }} position="flex">
             <Toolbar>
 
                 <Typography variant="h6" align="center" className={classes.title} >
-                    Lottery
+                    KOHEI
                 </Typography>
 
 
